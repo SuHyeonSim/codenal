@@ -1,0 +1,424 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}" data-sidebar="light">
+
+<head>
+<!-- Cleave.js CDN 추가 -->
+<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+<!-- flatpickr CSS 추가 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- flatpickr JS 추가 -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- SweetAlert2 CSS 추가 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<!-- SweetAlert2 JS 추가 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<meta name="_csrf" th:content="${_csrf.token}" />
+<meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<div th:replace="partials/page-title :: page-title('직원 정보 관리','직원 관리')"></div>
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="card">
+					<form id="employeeAddFrm" class="needs-validation" th:action="@{/admin/api/join}" th:object="${employeeDto}" method="POST" novalidate>
+						<div class="card-header">
+							<h5 class="card-title mb-0" style="font-size: 18px; font-weight: bold;">신규 직원 등록</h5>
+						</div>
+						<div class="card-body">
+							<div class="row g-4">
+
+								<!-- 이름 + 사번 -->
+								<div class="col-lg-6">
+									<div class="was-validated">
+										<label for="admin-new-name" class="form-label" style="font-size: 16px; font-weight: bold;">이름 
+										<span class="text-danger">*</span></label> 
+										<input type="text" class="form-control" id="admin-new-name" th:field="*{empName}" placeholder="이름을 입력하세요" required />
+										<div class="invalid-feedback">필수 정보</div>
+									</div>
+								</div>
+								<div class="col-lg-6">
+									<div class="was-validated">
+										<label for="admin-new-id" class="form-label" style="font-size: 16px; font-weight: bold;">사번</label> 
+										<input type="text" class="form-control" id="admin-new-id" th:field="*{empId}" placeholder="사번은 등록 시 자동 생성됩니다" disabled />
+									</div>
+								</div>
+								<!-- 개인 번호 + 주민 등록 번호 -->
+								<div class="col-lg-6">
+									<div class="was-validated">
+										<label for="admin-new-phone" class="form-label" style="font-size: 16px; font-weight: bold;">개인 번호 
+										<span class="text-danger">*</span></label> 
+										<input type="text" class="form-control" id="admin-new-phone" th:field="*{empPhone}" placeholder="번호를 입력하세요 (숫자만)" required>
+										<div class="invalid-feedback">필수 정보</div>
+									</div>
+								</div>
+								<div class="col-lg-6">
+									<div class="was-validated">
+										<label for="admin-new-ssn" class="form-label" style="font-size: 16px; font-weight: bold;">주민 등록 번호 
+										<span class="text-danger">*</span></label> 
+										<input type="text" class="form-control" id="admin-new-ssn" th:field="*{empSsn}" placeholder="주민 등록 번호를 입력하세요 (숫자만)" required />
+										<div class="invalid-feedback">필수 정보</div>
+									</div>
+								</div>
+
+								<!-- 주소 + 상세 주소 -->
+								<div class="col-md-6">
+									<div>
+										<label for="admin-new-address" class="form-label" style="font-size: 16px; font-weight: bold;">주소</label>
+										<div class="input-group"> 
+											<input type="text" class="form-control" id="admin-new-address" th:field="*{empAddress}" placeholder="주소를 검색하세요." />
+											<button type="button" class="btn btn-success btn-md" onclick="openDaumPostcode()">주소 찾기</button>
+										</div>
+									</div>
+								</div>															
+								
+								<div class="col-md-6">
+									<div>
+										<label for="admin-new-address-detail" class="form-label" style="font-size: 16px; font-weight: bold;">상세 주소</label> 
+										<input type="text" class="form-control" id="admin-new-address-detail" th:field="*{empAddressDetail}" placeholder="상세 주소를 입력하세요" />
+									</div>
+								</div>
+
+								<!-- 부서 + 직급 -->
+								<div class="col-md-6">
+									<div class="was-validated">
+										<label for="admin-new-dept" class="form-label" style="font-size: 16px; font-weight: bold;"> 부서 
+										<span class="text-danger">*</span>
+										</label> <select class="form-select" id="admin-new-dept" th:field="*{deptNo}" aria-label="select example" required>
+											<option value="" style="color: gray;">부서를 선택하세요</option>
+											<th:block th:each="dept : ${departments}">
+												<option th:value="${dept.deptNo}" th:text="${dept.deptName}"></option>
+											</th:block>
+										</select>
+										<div class="invalid-feedback" id="dept-error">필수 정보</div>
+									</div>
+								</div>
+
+
+								<div class="col-md-6">
+									<div class="was-validated">
+										<label for="admin-new-job" class="form-label" style="font-size: 16px; font-weight: bold;">직급 
+										<span class="text-danger">*</span></label> <select class="form-select" id="admin-new-job" th:field="*{jobNo}" aria-label="select example" required>
+											<option value="" style="color: gray;">직급을 선택하세요</option>
+											<th:block th:each="job : ${jobs}">
+												<option th:value="${job.jobNo}" th:text="${job.jobName}"></option>
+											</th:block>
+										</select>
+										<div class="invalid-feedback" id="job-error">필수 정보</div>
+									</div>
+								</div>
+
+								<!-- 입사일 + 퇴사일 -->
+								<div class="col-lg-6">
+									<div class="was-validated">
+										<label for="admin-new-hire" class="form-label" style="font-size: 16px; font-weight: bold;"> 입사일 
+										<span class="text-danger">*</span></label>
+											<div class="input-group">
+												<input type="text" class="form-control" id="admin-new-hire" th:field="*{empHire}" data-provider="flatpickr" data-date-format="Y-m-d" placeholder="입사일을 선택하세요." required />
+												<span class="input-group-text"><i class="ri-calendar-event-line"></i></span>
+										<div class="invalid-feedback">필수 정보</div>
+											</div>
+									</div>
+								</div>
+
+								<div class="col-lg-6">
+									<div>
+										<label for="admin-new-end" class="form-label" style="font-size: 16px; font-weight: bold;">퇴사일</label> 
+										<input type="text" class="form-control" id="admin-new-end" th:field="*{empEnd}" disabled />
+									</div>
+								</div>
+
+								<!-- 완료 + 취소 -->
+								<div class="col-lg-12">
+									<div class="hstack gap-2 justify-content-end">
+										<input type="submit" class="btn btn-primary btn-border w-xs" style="font-size: 16px; font-weight: bold;" value="등록"> 
+										<input type="button" class="btn btn-soft-dark waves-effect waves-light material-shadow-none w-xs" style="font-size: 16px; font-weight: bold;" value="취소" th:onclick="|location.href='@{/admin/list}'|">
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<th:block layout:fragment="pagejs">
+	<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+	<script src="/assets/libs/fullcalendar/main.min.js"></script>
+
+		<script>
+	    /* 개인 번호 (010-0000-0000) */
+        if (document.querySelector("#admin-new-phone")) {
+            var cleaveBlocks = new Cleave('#admin-new-phone', {
+                delimiters: ['-', '-'],
+                blocks: [3, 4, 4]
+            });
+        }
+        
+        /* 주민 등록 번호 (000000-0000000) */
+        if (document.querySelector("#admin-new-ssn")) {
+            var cleaveBlocks = new Cleave('#admin-new-ssn', {
+                delimiters: ['-', '-'],
+                blocks: [6, 7]
+            });
+        }
+  
+        /* 입사일 선택 */
+        document.addEventListener("DOMContentLoaded", function () {
+            // flatpickr 초기화
+            flatpickr("#admin-new-hire", {
+                dateFormat: "Y-m-d",
+                allowInput: true,
+                onClose: function(selectedDates, dateStr, instance) {
+                    const hireInput = document.getElementById("admin-new-hire");
+                    if (dateStr === '') {
+                        hireInput.classList.add("is-invalid");
+                        hireInput.classList.remove("is-valid");
+                    } else {
+                        hireInput.classList.add("is-valid");
+                        hireInput.classList.remove("is-invalid");
+                    }
+                }
+            });
+
+            const form = document.getElementById("employeeAddFrm");
+            const deptSelect = document.getElementById("admin-new-dept");
+            const deptError = document.getElementById("dept-error");
+            const jobSelect = document.getElementById("admin-new-job");
+            const jobError = document.getElementById("job-error");
+            
+            if (!form || !deptSelect || !deptError || !jobSelect || !jobError) {          
+                return;
+            }
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!form.checkValidity()) {
+                    form.classList.add('was-validated');
+                    Swal.fire({
+                        icon: 'error',
+                        title: '실패',
+                        text: "필수 항목을 모두 입력해주세요.",
+                        confirmButtonText: "닫기"
+                    });
+                    return;
+                }
+
+                let vali_check = true;  
+                let vali_text = "필수 항목을 모두 입력해주세요.";
+
+                const emp_name = document.getElementById("admin-new-name").value.trim();
+                const emp_phone = document.getElementById("admin-new-phone").value.trim();
+                const emp_ssn = document.getElementById("admin-new-ssn").value.trim();
+                const dept_no = deptSelect.value;
+                const job_no = jobSelect.value;
+                const emp_hire = document.getElementById("admin-new-hire").value.trim();
+                const emp_address = document.getElementById("admin-new-address").value.trim();
+                const emp_address_detail = document.getElementById("admin-new-address-detail").value.trim();
+
+                // 입사일 유효성 검사
+                if (emp_hire === '') {
+                    vali_check = false;
+                    const hireInput = document.getElementById("admin-new-hire");
+                    hireInput.classList.add("is-invalid");
+                    hireInput.classList.remove("is-valid");
+                } else {
+                    const hireInput = document.getElementById("admin-new-hire");
+                    hireInput.classList.add("is-valid");
+                    hireInput.classList.remove("is-invalid");
+                }
+                
+                // 이름 유효성 검사
+                if (emp_name === '') {
+                    vali_check = false;
+                    document.getElementById("admin-new-name").classList.add("is-invalid");
+                } else {
+                    document.getElementById("admin-new-name").classList.remove("is-invalid");
+                    document.getElementById("admin-new-name").classList.add("is-valid");
+                }
+
+                // 전화번호 유효성 검사
+                if (emp_phone === '') {
+                    vali_check = false;
+                    document.getElementById("admin-new-phone").classList.add("is-invalid");
+                } else {
+                    document.getElementById("admin-new-phone").classList.remove("is-invalid");
+                    document.getElementById("admin-new-phone").classList.add("is-valid");
+                }
+
+                // 주민번호 유효성 검사
+                if (emp_ssn === '') {
+                    vali_check = false;
+                    document.getElementById("admin-new-ssn").classList.add("is-invalid");
+                } else {
+                    document.getElementById("admin-new-ssn").classList.remove("is-invalid");
+                    document.getElementById("admin-new-ssn").classList.add("is-valid");
+                }
+
+                // 부서 선택 유효성 검사
+                if (!dept_no) {
+                    vali_check = false;
+                    deptError.style.display = "block"; // 경고 표시
+                    deptSelect.classList.add("is-invalid");
+                } else {
+                    deptError.style.display = "none";
+                    deptSelect.classList.remove("is-invalid");
+                    deptSelect.classList.add("is-valid");
+                }
+
+                // 직급 선택 유효성 검사
+                if (!job_no) { 
+                    vali_check = false;
+                    jobError.style.display = "block";
+                    jobSelect.classList.add("is-invalid");
+                } else {
+                    jobError.style.display = "none";
+                    jobSelect.classList.remove("is-invalid");
+                    jobSelect.classList.add("is-valid");
+                }
+
+                if (!vali_check) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '실패',
+                        text: vali_text,
+                        confirmButtonText: "닫기"
+                    });
+                    return;
+                }
+
+                // 서버로 전송할 데이터 객체
+                const emp_auth = 'USER';  
+                const emp_status = 'Y';
+                const obj = {
+                    empName: emp_name,
+                    empPhone: emp_phone,
+                    empSsn: emp_ssn,
+                    empAddress: emp_address,
+                    empAddressDetail: emp_address_detail,
+                    deptNo: dept_no === '' ? null : parseInt(dept_no),
+                    jobNo: job_no === '' || job_no === "default" ? null : parseInt(job_no), 
+                    empHire: emp_hire,
+                    empStatus: emp_status,
+                    empAuth: emp_auth
+                };
+                
+                const jsonData = JSON.stringify(obj);
+                // 토큰
+                const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+                fetch('/admin/api/join', { // URL을 컨트롤러 매핑과 일치시키기
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json;charset=utf-8",
+                        "Accept": "application/json",
+                        [csrfHeader]: csrfToken
+                    },     
+                    body: jsonData
+                })
+                
+                .then(response => {
+                  //  console.log("서버 응답 상태:", response.status); 
+                    return response.json();
+                })
+                .then(data => {
+                   // console.log("서버 응답 데이터:", data); 
+                    if (data.res_code === '200') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '등록 성공',
+                            text: data.res_msg,
+                            confirmButtonText: "닫기"
+                        }).then(() => {
+                            location.href = "/admin/list";
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '등록 실패',
+                            text: data.res_msg,
+                            confirmButtonText: "닫기"
+                        });
+                    }
+                }) 
+                .catch(error => {
+                    console.error("에러 발생:", error); 
+                    Swal.fire({ 
+                        icon: 'error',
+                        title: '등록 실패',
+                        text: "서버와 통신 중 오류가 발생했습니다.",
+                        confirmButtonText: "닫기"
+                    });
+                });
+            });
+
+            // 부서 선택이 변경될 때 실시간 유효성 검사
+            deptSelect.addEventListener("change", function () {
+                if (deptSelect.value === "") {
+                    deptSelect.classList.add("is-invalid");
+                    deptSelect.classList.remove("is-valid");
+                    deptError.style.display = "block";
+                } else {
+                    deptSelect.classList.remove("is-invalid");
+                    deptSelect.classList.add("is-valid");
+                    deptError.style.display = "none";
+                }
+            });
+
+            // 직급 선택이 변경될 때 실시간 유효성 검사
+            jobSelect.addEventListener("change", function () {
+                if (jobSelect.value === "" || jobSelect.value === "default") {
+                    jobSelect.classList.add("is-invalid");
+                    jobSelect.classList.remove("is-valid");
+                    jobError.style.display = "block";
+                } else {
+                    jobSelect.classList.remove("is-invalid");
+                    jobSelect.classList.add("is-valid");
+                    jobError.style.display = "none";
+                }
+            });
+        });
+        
+     /* 카카오 주소 api  */
+		 function openDaumPostcode() {
+		    new daum.Postcode({
+		        oncomplete: function(data) {
+		            let fullAddr = ''; // 최종 주소 변수
+		            let extraAddr = ''; // 참고 항목 변수
+		
+		            if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+		                fullAddr = data.roadAddress;
+		            } else { // 사용자가 지번 주소를 선택했을 경우(J)
+		                fullAddr = data.jibunAddress;
+		            }
+		
+		            // 참고항목 추가
+		            if (data.userSelectedType === 'R') {
+		                if (data.bname !== '') {
+		                    extraAddr += data.bname;
+		                }
+		                if (data.buildingName !== '') {
+		                    extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+		                }
+		                fullAddr += (extraAddr !== '' ? ' (' + extraAddr + ')' : '');
+		            }
+		
+		            // 주소와 상세주소 필드에 값을 채움
+		            document.getElementById('admin-new-address').value = fullAddr;
+		            document.getElementById('admin-new-address-detail').focus();
+		        }
+		    }).open();
+		}
+
+
+        </script>
+	</th:block>
+</body>
+
+</html>

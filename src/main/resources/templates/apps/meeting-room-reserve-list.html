@@ -1,0 +1,204 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout}" data-sidebar="light">
+
+<th:block layout:fragment="pagetitle">
+	<!--page title-->
+	<div th:replace="partials/title-meta :: title-meta('회의실 예약 확인')"></div>
+</th:block>
+
+<head>
+<!-- 폰트 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+<style type="text/css">
+	* {font-family: "Noto Sans KR", sans-serif !important;} 
+</style>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<div th:replace="partials/page-title :: page-title('회의실 예약 확인','회의실 예약')"></div>
+		<input type="hidden" id="csrf_token" th:value="${_csrf.token}"/>
+		<input type="hidden" id="empId" th:value="${empId}">
+		<div class="row mb-3" id="reset">
+			<div class="col-xl-12">
+				<div class="row align-items-center gy-3 mb-3">
+					<div class="col-sm">
+						<div>
+							<h5 class="fs-14 mb-0">회의실 예약 내역(총 <span th:text="${#lists.size(reserveList)}">03</span>개)</h5>
+						</div>
+					</div>
+					<!-- <div class="col-sm-auto">
+						<a href="/apps-ecommerce-product-details" class="link-primary text-decoration-underline">
+						회의실 예약하기</a>
+					</div> -->
+				</div>
+
+				<div class="row text-muted fw-bold fs-18 justify-content-center align-items-center" th:if="${#lists.isEmpty(reserveList)}" style="height: 500px">
+					예약 내역이 없습니다.
+				</div>
+				<div class="card product" th:if="${!#lists.isEmpty(reserveList)}" th:each="reserveList : ${reserveList}">
+					<div class="card-body">
+					<input type="hidden" id="reserveNo" th:value="${reserveList.meeting_room_reserve_no}">
+						<div class="row gy-3" >
+							<div class="col-sm-auto">
+								<div class="avatar-lg bg-light rounded p-1" th:style=" 'background-image: url(/meetingRoomImg/'+${reserveList.meeting_room_img}+'); background-repeat: no-repeat; background-size: cover; background-position: center'">
+									<!-- <img th:src="${meetingRoomDetail.meeting_room_img}" alt="" class="img-fluid d-block"> -->
+								</div>
+							</div>
+							<div class="col-sm">
+								<h5 class="fs-16 text-truncate fw-medium"><a href="/apps-meeting-room"
+										class="text-dark" th:text="${reserveList.meeting_room_name}">회의실 명</a></h5>
+								
+								<div class='hstack gap-3 flex-wrap mb-4'>
+									<div>
+										<a class='text-primary d-block fw-medium'
+											th:text="${reserveList.meeting_room_reserve_date}"> 예약 날짜</a>
+									</div>
+									<span class='vr'></span>
+									<div class=''>
+										예약 시간 : <span class='fw-medium text-primary' th:text="${reserveList.meeting_room_start_time}"></span> ~ <span class='fw-medium text-primary' th:text="${reserveList.meeting_room_end_time}"></span>
+									</div>
+								</div>
+								
+								<div class="list-inline text-muted align-self-end d-flex">
+									<div class="list-inline-item">회의실 위치 : <span class="fw-medium" th:text="${reserveList.meeting_room_place}">Pink</span></div>
+									<div class="list-inline-item">어매니티 : <span class="fw-medium" th:text="${reserveList.meeting_room_amenity}">M</span></div>
+								</div>
+
+								
+							</div>
+						</div>
+					</div>
+					<!-- card body -->
+					<div class="card-footer">
+						<div class="row align-items-center gy-3">
+							<div class="col-sm">
+								<div class="d-flex flex-wrap my-n1">
+									<div>
+										<!-- <a href="#" class="d-block text-body p-1 px-2" data-bs-toggle="modal" data-bs-target="#removeItemModal" th:attr="id=${reserveList.meeting_room_reserve_no}"><i
+												class="ri-delete-bin-fill text-muted align-bottom me-1"></i> 예약 취소</a> -->
+											<a href="#" class="d-block text-body p-1 px-2" onclick="deleteReserve(this)" th:attr="id=${reserveList.meeting_room_reserve_no}"><i
+												class="ri-delete-bin-fill text-muted align-bottom me-1"></i> 예약 취소</a>
+									</div>
+									<div>
+										<a th:href="@{/reserveModify/{no}(no=${reserveList.meeting_room_reserve_no})}" class="d-block text-body p-1 px-2"><i
+												class="ri-star-fill text-muted align-bottom me-1"></i> 예약 변경</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- end card footer -->
+				</div>
+				<!-- end card -->
+
+				
+				
+
+
+				<div class="text-end mb-4">
+					<a href="/apps-meeting-room" class="btn btn-success btn-label right ms-auto"><i
+							class="ri-arrow-right-line label-icon align-bottom fs-16 ms-2"></i> 회의실 예약하기</a>
+				</div>
+			</div>
+			<!-- end col -->
+
+			<!-- <div class="col-xl-4">
+				<div class="sticky-side-div">
+					<div class="card">
+						<div class="card-header border-bottom-dashed">
+							<h5 class="card-title mb-0">회의실 예약 통계</h5>
+						</div>
+						<div class="card-body pt-2">
+							<div class="table-responsive">
+								<table class="table table-borderless mb-0">
+									<tbody>
+										<tr>
+											<td>총 예약 횟수 :</td>
+											<td class="text-end" id="cart-subtotal">$ 359.96</td>
+										</tr>
+										<tr>
+											<td>Discount <span class="text-muted">(VELZON15)</span> : </td>
+											<td class="text-end" id="cart-discount">- $ 53.99</td>
+										</tr>
+										<tr>
+											<td>이번 달 예약 횟수 :</td>
+											<td class="text-end" id="cart-shipping">$ 65.00</td>
+										</tr>
+										<tr>
+											<td>Estimated Tax (12.5%) : </td>
+											<td class="text-end" id="cart-tax">$ 44.99</td>
+										</tr>
+										<tr class="table-active">
+											<th>Total (USD) :</th>
+											<td class="text-end">
+												<span class="fw-semibold" id="cart-total">
+													$415.96
+												</span>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							end table-responsive
+						</div>
+					</div>
+
+					<div class="alert border-dashed alert-danger" role="alert">
+						<div class="d-flex align-items-center">
+							<lord-icon src="https://cdn.lordicon.com/nkmsrxys.json" trigger="loop"
+								colors="primary:#121331,secondary:#f06548" style="width:80px;height:80px"></lord-icon>
+							<div class="ms-2">
+								<h5 class="fs-14 text-danger fw-semibold"> Buying for a loved one?</h5>
+								<p class="text-black mb-1">Gift wrap and personalised message on card, <br />Only for
+									<span class="fw-semibold">$9.99</span> USD </p>
+								<button type="button" class="btn ps-0 btn-sm btn-link text-danger text-uppercase">Add
+									Gift Wrap</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				end stickey
+
+			</div> -->
+		</div>
+		<!--end row-->
+	</div>
+
+
+	<th:block layout:fragment="modal">
+		<!-- removeItemModal -->
+    <div id="removeItemModal" class="modal fade zoomIn" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="close-modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mt-2 text-center">
+                        <div class="mt-4 pt-2 fs-15 mx-4 mx-sm-5">
+                            <h4 class="fw-bold">예약을 취소하시겠습니까?</h4>
+                            <p class="text-muted mx-4 mb-0">예약을 취소할 경우 되돌릴 수 없습니다.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-center mt-4 mb-2">
+                        <button type="button" class="btn w-sm btn-light" data-bs-dismiss="modal">닫기</button>
+                        <button type="button" class="btn w-sm btn-danger" id="remove-product" onclick="deleteReserve(this)">예약 취소</button>
+                    </div>
+                </div>
+
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+	</th:block>
+	<th:block layout:fragment="pagejs">
+		<!-- input step init -->
+    <script src="/assets/js/pages/form-input-spin.init.js"></script>
+
+    <!-- ecommerce cart js -->
+    <script src="/assets/js/pages/meeting-room-reserve-list.init.js"></script>
+	</th:block>
+</body>
+
+</html>

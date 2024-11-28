@@ -1,0 +1,207 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout}" data-sidebar="light">
+
+<head>
+<link href="/assets/libs/dropzone/dropzone.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" type="text/css" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
+
+
+<!-- 폰트 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+<style type="text/css">
+
+* {
+	font-family: "Noto Sans KR", sans-serif !important;
+}
+
+</style>
+
+
+<!-- Font Awesome 라이브러리 추가 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<!-- jsTree 테마 CSS 포함 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<!-- jQuery 포함 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
+<!-- jsTree 포함 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.15/jstree.min.js"></script>
+
+
+<style>
+.jstree-icon.ri-building-fill { /* 회사 아이콘 */
+	color: #3e4a6e;
+	font-size: 24px;
+}
+
+.jstree-icon.ri-team-fill { /* 부서 아이콘 */
+	color: #3577f1;
+	font-size: 20px;
+}
+
+.jstree-icon.ri-user-2-fill { /* 직원 아이콘 */
+	color: #9a9ba0;
+	font-size: 16px;
+}
+
+.body-list { /* 몸통 높이 고정(동적X) */
+	height: 598.5px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	position: relative;
+	padding-bottom: 60px;
+}
+
+</style>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<div th:replace="partials/page-title :: page-title('게시글 작성','게시판')"></div>
+		<form id="announceForm" method="post" enctype="multipart/form-data">
+			<div class="row">
+				<div class="col-lg-8">
+					<div class="card">
+						<div class="card-body">
+
+							<input type="hidden" id="csrf_token" th:value="${_csrf.token}">
+							<input type="hidden" id="announce_writer" th:value="${username}">
+
+							<div class="mb-3">
+								<label class="form-label" for="announce_title">제목</label> <input
+									type="text" class="form-control" id="announce_title"
+									placeholder="제목을 입력하세요.">
+
+							</div>
+							<label class="form-label">내용</label>
+							<script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+							<div id="editor"></div>
+							<script>
+	                            const editor = new toastui.Editor({
+	                                el: document.querySelector('#editor'),
+	                                height: '500px',                        // 에디터 영역의 높이 값 (OOOpx || auto)
+	                                initialEditType: 'wysiwyg',            // 최초로 보여줄 에디터 타입 (markdown || wysiwyg)
+	                                initialValue: '',                       // 내용의 초기 값으로, 반드시 마크다운 문자열 형태여야 함
+	                                previewStyle: 'vertical',               // 마크다운 프리뷰 스타일 (tab || vertical)
+	                                /* start of hooks */
+	                                hooks: {
+	                                    async addImageBlobHook(blob, callback) { // 이미지 업로드 로직 커스텀
+	                                        try {
+	                                            /*
+	                                             * 1. 에디터에 업로드한 이미지를 FormData 객체에 저장
+	                                             *    (이때, 컨트롤러 uploadEditorImage 메서드의 파라미터인 'image'와 formData에 append 하는 key('image')값은 동일해야 함)
+	                                             */
+	                                            const formData = new FormData();
+	                                            formData.append('image', blob);
+	
+	                                            // 2. FileApiController - uploadEditorImage 메서드 호출
+	                                            const csrfToken = document.getElementById("csrf_token").value;
+	                                            const response = await fetch('/tui-editor/image-upload', {
+	                                                method : 'POST',
+	                                                body : formData,
+	                                                headers: {
+	                                         	       'X-CSRF-TOKEN': csrfToken
+	
+	                                                 },
+	                                            });
+	
+	                                            // 3. 컨트롤러에서 전달받은 디스크에 저장된 파일명
+	                                            const filename = await response.text();
+	                                            console.log('서버에 저장된 파일명 : ', filename);
+	
+	                                            // 4. addImageBlobHook의 callback 함수를 통해, 디스크에 저장된 이미지를 에디터에 렌더링
+	                                            const imageUrl = `/tui-editor/image-print?filename=${filename}`;
+	                                            callback(imageUrl, 'image alt attribute');
+	
+	                                        } catch (error) {
+	                                            console.error('업로드 실패 : ', error);
+	                                        }
+	                                    }
+	                                }
+	                                /* end of hooks */
+	                            });
+	                        </script>
+						</div>
+					</div>
+
+					<div class="card">
+						<div class="card-header">
+							<h5 class="card-title mb-0">첨부할 파일 목록</h5>
+						</div>
+						<div class="card-body">
+							<div>
+								<p class="text-muted">첨부할 파일을 이곳에 첨부하세요.</p>
+								<!-- <div class="dropzone" id="fileDropzone"> -->
+								<div class="fallback">
+									<input id="file" name="file" type="file" multiple="multiple">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-lg-4">
+					<div class="card" style="height:150px;">
+						<div class="card-header">
+							<h5 class="card-title mb-0">읽기 권한 설정</h5>
+						</div>
+						<div class="card-body" style="height: 100%">
+							<div>
+								<input type="radio" id="all" name="read_authority_status" value="N">
+								<label for="all">전직원</label>
+								<input type="radio" id="select" name="read_authority_status" value="Y">
+								<label for="select">권한 직접 설정</label>
+							</div>
+							<!-- 모달 생성 -->
+							<div class="modal fade" id="staticBackdrop"
+								data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+								role="dialog" aria-hidden="true">
+								<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 300px; height: 500px;">
+									<div class="modal-content">
+										<div class="modal-header">
+											<h5 class="modal-title" id="myModalLabel">권한 직접 선택</h5>
+											<button type="button" class="btn-close"
+												data-bs-dismiss="modal" aria-label="Close"></button>
+										</div>
+										<div class="modal-body text-left" style="height: 500px;" data-simplebar>
+											<div id="treeMenu"></div>
+											<div id="treeAdd"></div>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-light"
+												data-bs-dismiss="modal">초기화</button>
+											<button type="button" class="btn btn-success" id="successBtn">완료</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 선택된 부서 또는 직원 ID 저장 -->
+					<input type="hidden" id="selectedDeptIds" name="selectedDeptIds">
+					<!-- 선택된 부서 또는 직원 이름 저장 -->
+					<input type="hidden" id="selectedJobIds" name="selectedJobIds">
+							
+		</form>
+
+	<div class="text-center mb-4">
+		<button type="button" class="btn btn-danger w-sm" onclick="goBack()">이전으로</button>
+		<button type="submit" class="btn btn-success w-sm" id="create-btn">작성 완료</button>
+	</div>
+	</div>
+
+	<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+
+	<th:block layout:fragment="pagejs">
+		<script src="/assets/js/pages/remix-icons-listing.js"></script>
+		<!--  announce-create js  -->
+		<script src="/assets/js/pages/announce-create.js"></script>
+	</th:block>
+
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout}" data-sidebar="light">
+
+<th:block layout:fragment="pagetitle">
+	<!--page title-->
+	<div th:replace="~{partials/title-meta :: title-meta('직원 정보 관리')}"></div>
+</th:block>
+
+<head>
+<!-- Sweet Alert css-->
+<link href="/assets/libs/sweetalert2/sweetalert2.min.css"
+	rel="stylesheet" type="text/css" />
+<style>
+.card-body.pt-0 { /* 몸통 높이 고정(동적X) */
+	height: 592.5px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	position: relative;
+	padding-bottom: 60px;
+}
+
+.pagination { /* 페이징 위치 고정 */
+	position: absolute;
+	bottom: 10px;
+	left: 50%;
+	transform: translateX(-50%);
+}
+</style>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<div
+			th:replace="partials/page-title :: page-title('직원 정보 관리','직원 관리')"></div>
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="card">
+					<div class="card-header border-0">
+						<div class="col-sm">
+							<h5 class="card-title mb-0"
+								style="font-size: 18px; font-weight: bold;">직원 목록</h5>
+						</div>
+					</div>
+
+
+					<form th:action="@{/admin/list}" th:object="${searchDto}"
+						method="get">
+						<div
+							class="card-body border border-dashed border-end-0 border-start-0">
+							<div class="row g-3">
+								<!-- 신규 직원 등록 버튼 -->
+								<div class="col-xxl-3 col-sm-7">
+									<a th:href="@{/admin/join}"
+										class="btn btn-outline-info waves-effect waves-light material-shadow-none justify-content-center"
+										id="create-btn"
+										style="width: 50%; font-size: 18px; padding: 3px; border: 1px solid #299cdb;">
+										<i class="ri-add-line align-bottom me-1"></i> 신규 직원 등록
+									</a>
+								</div>
+
+								<!-- 빈 공간 -->
+								<div class="col-xxl-3 col-sm-7">
+									<div></div>
+								</div>
+
+								<!-- 재직 상태 선택 -->
+								<div class="col-xxl-1 col-sm-4">
+									<div>
+										<select class="form-select mb-3" name="empStatus"
+											th:field="*{empStatus}"> 
+											<option value="ALL"
+												th:selected="${searchDto.empStatus == 'ALL'}">재직 상태</option>
+											<option value="Y" th:selected="${searchDto.empStatus == 'Y'}">재직</option>
+											<option value="N" th:selected="${searchDto.empStatus == 'N'}">퇴사</option>
+										</select>
+
+									</div>
+								</div>
+
+								<!-- 직원 정보 선택 -->
+								<div class="col-xxl-1 col-sm-4">
+									<div>
+										<select class="form-select mb-3" name="search_type"
+											id="idPayment" th:field="*{search_type}">
+											<option value="1" th:selected="${searchDto.search_type == 1}">전체</option>
+											<!-- <option value="2" th:selected="${searchDto.search_type == 2}">사번</option> -->
+											<option value="3" th:selected="${searchDto.search_type == 3}">직원명</option>
+											<option value="4" th:selected="${searchDto.search_type == 4}">부서명</option>
+											<option value="5" th:selected="${searchDto.search_type == 5}">직급명</option>
+											<option value="6" th:selected="${searchDto.search_type == 6}">전화번호</option>
+										</select>
+									</div>
+								</div>
+
+								<!-- 검색어 입력란 -->
+								<div class="col-xxl-3 col-sm-5">
+									<div>
+										<div class="search-box">
+											<input type="text" class="form-control" name="search_text"
+												th:field="*{search_text}" placeholder="검색어를 입력해 주세요.">
+											<i class="ri-search-line search-icon"></i>
+										</div>
+									</div>
+								</div>
+
+								<!-- 검색 버튼 -->
+								<div class="col-xxl-1 col-sm-4">
+									<div>
+										<input type="submit" value="검색" class="btn btn-primary w-100"
+											style="font-size: 18px; padding: 3px;">
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
+
+
+					<!-- -------------------목록---------------------------- -->
+					<div class="card-body pt-0">
+						<div>
+							<div class="table-responsive table-card mb-0">
+								<table
+									class="table align-middle table-nowrap table-striped table-hover mb-3">
+									<thead class="table-light">
+										<tr>
+											<th scope="col" style="text-align: center; font-size: 15px;">번호</th>
+											<th scope="col" style="text-align: center; font-size: 15px;">사번</th>
+											<th scope="col" style="text-align: center; font-size: 15px;">직원명</th>
+											<th scope="col" style="text-align: center; font-size: 15px;">부서명</th>
+											<th scope="col" style="text-align: center; font-size: 15px;">직급명</th>
+											<th scope="col" style="text-align: center; font-size: 15px;">전화번호</th>
+											<th scope="col" style="text-align: center; font-size: 15px;">재직상태</th>
+										</tr>
+									</thead>
+
+									<!-- ----------------------목록 내역-------------------------------- -->
+									<tbody>
+										<!-- 직원 목록이 비어 있을 때 -->
+										<th:block th:if="${#lists.isEmpty(resultList.content)}">
+											<tr>
+												<td colspan="7" style="text-align: center;">직원 목록이
+													없습니다.</td>
+											</tr>
+										</th:block>
+
+										<!-- 직원 목록 표시 -->
+										<th:block th:if="${!#lists.isEmpty(resultList.content)}">
+											<tr th:each="employee, employeeStat : ${resultList.content}"
+												th:onclick="|location.href='@{/admin/detail/{empId}(empId=${employee.empId})}'|"
+												style="cursor: pointer;">
+												<td
+													th:text="${(resultList.pageable.pageSize)*(resultList.pageable.pageNumber)+employeeStat.count}"
+													style="text-align: center;"></td>
+												<td th:text="${employee.empId}" style="text-align: center;"></td>
+												<td th:text="${employee.empName}"
+													style="text-align: center;"></td>
+												<td th:text="${employee.deptName}"
+													style="text-align: center;"></td>
+												<td th:text="${employee.jobName}"
+													style="text-align: center;"></td>
+												<td th:text="${employee.empPhone}"
+													style="text-align: center;"></td>
+												<td style="text-align: center;"><span
+													th:class="${employee.empStatus eq 'Y' ? 'badge bg-secondary-subtle text-secondary' : 'badge bg-dark-subtle text-body'}"
+													th:text="${employee.empStatus eq 'Y' ? '재직' : '퇴사'}"
+													style="font-size: 13px;"></span></td>
+											</tr>
+										</th:block>
+
+
+									</tbody>
+								</table>
+								<br>
+
+								<!-- ----------------------페이징------------------------------- -->
+								<div class="col-lg-6">
+									<div class="d-flex justify-content-end mt-2 pagination"
+										th:if="${!resultList.isEmpty()}">
+										<ul class="pagination"
+											th:with="
+									        pageNumber = ${resultList.pageable.pageNumber},
+									        pageSize = ${resultList.pageable.pageSize},
+									        totalPages = ${resultList.totalPages},
+									        startPage = ${T(java.lang.Math).floor(pageNumber / pageSize) * pageSize + 1},
+									        tempEndPage = ${startPage + pageSize - 1},
+									        endPage = (${tempEndPage < totalPages ? tempEndPage : totalPages})
+									        ">
+											<!-- 이전 -->
+											<th:block th:if="${!resultList.first}">
+												<li class="page-item"><a class="page-link"
+													th:href="${resultList.first} ? '#' : @{/admin/list(page=${pageNumber - 1}, search_text=${searchDto.search_text}, search_type=${searchDto.search_type})}">&lt;</a></li>
+											</th:block>
+											<!-- * 컬렉션을 반복하는 것이 아니라 단순히 숫자만 반복할때 #numbers사용 -->
+											<th:block
+												th:each="page: ${#numbers.sequence(startPage, endPage)}">
+												<li class="page-item"><a class="page-link"
+													th:text="${page}"
+													th:href="@{/admin/list(page=${page} - 1, search_text=${searchDto.search_text}, search_type=${searchDto.search_type})}"
+													th:classappend="${page == pageNumber + 1} ? 'active'">1</a></li>
+											</th:block>
+											<ul class="pagination listjs-pagination mb-0"></ul>
+											<!-- 이후 -->
+											<th:block th:if="${!resultList.last}">
+												<li class="page-item"><a class="page-link"
+													th:href="${resultList.last} ? '#' : @{/admin/list(page=${pageNumber + 1}, search_text=${searchDto.search_text}, search_type=${searchDto.search_type})}">&gt;</a></li>
+											</th:block>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<th:block layout:fragment="pagejs">
+		<!-- list.js min js -->
+		<!-- 		<script src="/assets/libs/list.js/list.min.js"></script> -->
+		<!--list pagination js-->
+		<script src="/assets/libs/list.pagination.js/list.pagination.min.js"></script>
+		<script src="/assets/libs/prismjs/prism.js"></script>
+		<script src="/assets/js/pages/remix-icons-listing.js"></script>
+		<!-- <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script> -->
+	</th:block>
+</body>
+
+</html>

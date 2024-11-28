@@ -1,0 +1,250 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
+<head>
+    <!-- 토큰 값 ajax ..? -->
+    <meta name="_csrf" th:content="${_csrf.token}" />
+	<meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    
+    <title>전자결재 관리</title>
+    <th:block layout:fragment="pagetitle" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/libs/dropzone/dropzone.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
+    
+    <!-- 폰트 -->
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+
+    <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+
+    <style>
+		* {font-family: "Noto Sans KR", sans-serif !important;} 
+        .table-card {
+            overflow: hidden;
+        }
+
+        .table {
+            width: 100%;
+            table-layout: auto; /* 자동 크기 조정 */
+        }
+        
+    </style>
+</head>
+
+<body>
+        <div layout:fragment="content">
+            <div th:replace="partials/page-title :: page-title('전자결재 관리','')"></div>
+		<div>
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="card" id="companyList">
+						<div class="card-header border-0">
+							<div class="d-flex align-items-center">
+								<div class="flex-shrink-0">
+									<div class="d-flex flex-wrap gap-2">
+										<a class="btn btn-primary" id="createButton"
+											th:href="@{/admin/approvalCreate}"> 추가하기</a>
+									</div>
+								</div>
+							</div>
+							<div class="table-responsive table-card mb-3">
+								<table class="table align-middle table-nowrap mb-0"
+									id="customerTable" style="margin-top: 50px;">
+									<colgroup>
+										<col width=10%>
+										<col width=30%>
+										<col width=40%>
+										<col width=20%>
+									</colgroup>
+									<thead>
+										<tr style="text-align: center;">
+											<th>번호</th>
+											<th>종류</th>
+											<th>양식</th>
+											<th>공개여부</th>
+										</tr>
+									</thead>
+
+									<tbody class="table align-middle table-nowrap mb-0"
+										style="text-align: center;">
+
+										<tr
+											th:each="approvalForm, approvalFormStat : ${resultList.content}">
+											<td
+												th:text="${resultList.totalElements - ((resultList.pageable.pageSize) * (resultList.pageable.pageNumber) + approvalFormStat.count)+1}"></td>
+											<td
+												th:text="${approvalForm.approvalBaseFormType.baseFormName}"></td>
+											<td><a th:text="${approvalForm.formName}"
+												th:href="@{/admin/approvalDetail/{no}(no=${approvalForm.formCode})}"
+												class="modalOpen" data-value="${approvalForm.formCode}"></a>
+												<input type="hidden" th:value="${approvalForm.formCode}"
+												id="formCode"></td>
+											<td th:if="${approvalForm.formVisibility.toString() == 'Y'}">
+
+												<!-- Y면 check된 상태 표시 -->
+												<div
+													class="form-check form-switch form-switch-info  d-flex justify-content-center">
+													<input class="form-check-input" type="checkbox"
+														th:id="${approvalForm.formCode}" role="switch" checked
+														onchange="sendData(this)">
+												</div>
+											</td>
+											<td th:if="${approvalForm.formVisibility.toString() == 'N'}">
+												<div
+													class="form-check form-switch form-switch-info  d-flex justify-content-center">
+													<input class="form-check-input" type="checkbox"
+														th:id="${approvalForm.formCode}" role="switch"
+														onchange="sendData(this)">
+												</div>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+								<!-- 페이징 -->
+								<div class="col-lg-6">
+									<div class="d-flex justify-content-end mt-2 pagination">
+										<th:block layout:fragment="pagejs">
+											<div>
+												<ul class="pagination" style="margin-top: 200px;"
+													th:with="pageNumber=${resultList.pageable.pageNumber}, 
+									                     pageSize=${resultList.pageable.pageSize}, 
+									                     totalPages=${resultList.totalPages}, 
+									                     startPage=${T(java.lang.Math).floor(pageNumber / pageSize) * pageSize + 1},
+									                     tempEndPage=${startPage + pageSize - 1},
+									                     endPage=${tempEndPage < totalPages ? tempEndPage : totalPages}">
+
+													<!-- 이전 페이지 링크 -->
+													<li class="page-item"><th:block
+															th:if="${!resultList.first}">
+															<a class="page-link"
+																th:href="${resultList.first} ? '#' : @{/admin/approval_list( page=${pageNumber - 1})}">&lt;</a>
+														</th:block></li>
+
+													<th:block th:if="${resultList.totalElements > 0}">
+														<!-- 페이지 숫자 링크 -->
+														<th:block
+															th:each="page : ${#numbers.sequence(startPage, endPage)}">
+															<li class="page-item"><a th:text="${page}"
+																th:href="@{/admin/approval_list( page=${page - 1})}"
+																class="page-link"
+																th:classappend="${page == pageNumber + 1} ? 'active'">1</a>
+															</li>
+														</th:block>
+
+														<!-- 다음 페이지 링크 -->
+														<li class="page-item"><th:block
+																th:if="${!resultList.last}">
+																<a class="page-link"
+																	th:href="${resultList.last} ? '#' : @{/admin/approval_list(page=${pageNumber + 1})}">&gt;</a>
+															</th:block></li>
+													</th:block>
+
+												</ul>
+											</div>
+									</div>
+									</th:block>
+								</div>
+
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!--end col-->
+
+		</div>
+		<!--end col-->
+
+		<!--end row-->
+		<th:block layout:fragment="modal"></th:block>
+       	
+       		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script src="/assets/libs/list.js/list.min.js"></script>
+            <script src="/assets/libs/list.pagination.js/list.pagination.min.js"></script>
+            <script src="/assets/js/pages/crm-companies.init.js"></script>
+            <script src="/assets/libs/sweetalert2/sweetalert2.min.js"></script>
+        
+	
+
+		<!-- 토스트 api -->
+		<script>
+		    // 전역 변수로 contentEditor 선언
+		    let contentEditor;
+		
+		    function initEditor() {
+		        contentEditor = new toastui.Editor({
+		            el: document.querySelector('#approval_edit'),
+		            height: '400px',
+		            initialEditType: 'wysiwyg',
+		            previewStyle: 'vertical',
+		            hideModeSwitch: true
+		        });
+		
+		        updateEditorContent(); // 페이지 로드 시 기본 내용 설정
+		    }
+		
+		    function updateEditorContent() {
+		        // 에디터에서 현재 HTML 내용 가져오기
+		        let currentContent = contentEditor.getHTML();
+		
+		        // 공백을 찾아서 띄어쓰기로 변환 (필요시)
+		        currentContent = currentContent.replace(/ /g, (match) => '&nbsp;'.repeat(match.length));
+		        
+		        // 줄바꿈을 <br>로 변환 (필요시)
+		        currentContent = currentContent.replace(/\n/g, '<br>');
+		        
+		        // 중앙 정렬된 내용을 에디터에 설정
+		        contentEditor.setHTML(currentContent);
+		    }
+		
+		</script>
+
+		
+		<!-- 비공개 설정 -->
+		<script>
+		$(document).ready(function() {
+		    // CSRF 토큰을 설정
+		    var csrfToken = $('meta[name="_csrf"]').attr('content');
+		    var csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+
+		    // AJAX 전역 설정
+		    $.ajaxSetup({
+		        beforeSend: function(xhr) {
+		            xhr.setRequestHeader(csrfHeader, csrfToken);
+		        }
+		    });
+		});
+
+		
+		
+			function sendData(checkbox) {
+				const data = {
+					id : checkbox.id,
+					checked : checkbox.checked
+				};
+				
+				console.log(data);
+
+				$.ajax({
+					url : '/admin/updateVisibiliy',
+					type : 'POST',
+					contentType : 'application/json',
+					data : JSON.stringify(data),
+					success: function(response) {
+				        console.log('Success:', response);
+				    },
+				    error: function(xhr) {
+				        console.error('Error:', xhr);
+				    }
+				});
+			}
+		</script>
+	</div>
+	
+    
+</body>
+
+</html>

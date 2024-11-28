@@ -1,0 +1,241 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout}" data-sidebar="light">
+
+<th:block layout:fragment="pagetitle">
+	<!--page title-->
+	<div th:replace="partials/title-meta :: title-meta('게시글 상세 페이지')"></div>
+</th:block>
+
+<head>
+<!--TOAST UI Editor CSS-->
+<link rel="stylesheet" type="text/css" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
+	
+<!-- 폰트 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+<style type="text/css">
+	* {font-family: "Noto Sans KR", sans-serif !important;} 
+</style>
+
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="card mt-n4 mx-n4">
+					<div class="bg-soft-warning">
+						<div class="card-body pb-0 px-4">
+							<div class="row mb-3">
+								<div class="col-md">
+									<div class="row align-items-center g-3">
+										<div class="col-md-auto">
+											<div class="avatar-md">
+												<div class="avatar-title bg-white rounded-circle">
+													<img src="/assets/images/brands/slack.png" alt=""
+														class="avatar-xs">
+												</div>
+											</div>
+										</div>
+										<div class="col-md">
+											<div>
+												<input type="hidden" id="csrf_token"
+													th:value="${_csrf.token}"> <input type="hidden"
+													th:value="${announceList.announce_no}" id="aNo">
+												<!-- 상세 조회 시작 -->
+												<h2 class="fw-bold" th:text="${announceList.announce_title}"></h2>
+												<br>
+												<div class="hstack gap-3 flex-wrap">
+													<div>
+														<i class="ri-user-3-fill align-bottom me-1"></i> 작성자 : <span
+															class="fw-medium"
+															th:text="${announceList.employee.empName}"></span>
+													</div>
+													<div th:text="${announceList.employee.departments.deptName}">
+													<span class="fw-medium" th:text="${announceList.employee.jobs.jobName}"></span>
+													</div>
+													<div class="vr"></div>
+													<div>
+														<i class="ri-user-settings-line align-bottom me-1"></i> 읽기
+														권한 : <span class="fw-medium" th:text="${(announceList.read_authority_status != null and #strings.trim(announceList.read_authority_status).toUpperCase() == 'N') ? '전직원' : '권한 설정 상태'}"></span>
+													</div>
+													<br>
+													<div class="hstack gap-3 flex-wrap">
+														<div>
+															<i class="ri-pencil-fill align-bottom me-1"></i> 작성일 : <span
+																class="fw-medium"
+																th:text="${#temporals.format(announceList.reg_date, 'yy-MM-dd HH:mm:ss')}"></span>
+														</div>
+														<div id="modDate_div">
+															<i class="ri-eraser-line align-bottom me-1"></i> 수정일 : <span
+																id="modDate" class="fw-medium"
+																th:text="${#temporals.format(announceList.mod_date, 'yy-MM-dd HH:mm:ss')}"></span>
+														</div>
+													</div>
+													<br>
+													<div class="hstack gap-3 flex-wrap">
+														<div>
+															<i class="ri-eye-line align-bottom me-1"></i> 조회수 <span
+																class="fw-medium" th:text="${announceList.view_count}"></span>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+
+
+										<div class="col-md-auto"
+											th:if="${username} == ${announceList.employee.empId.toString()}">
+											<a
+												th:href="@{/announce/update/{no}(no=${announceList.announce_no})}">
+												<button type="button"
+													class="btn btn-soft-success waves-effect waves-light">
+													<i class="ri-eraser-line align-bottom me-1"></i> 게시글 수정
+												</button>
+											</a>
+											<a class="delete_board_button"
+												th:onclick="announceDelete([[${announceList.announce_no}]])">
+												<button type="button"
+													class="btn btn-soft-danger waves-effect waves-light">
+													<i class="ri-close-fill align-bottom me-1"></i> 게시글 삭제
+												</button>
+											</a>
+										</div>
+									</div>
+									<!-- Tab Navigation -->
+									<ul class="nav nav-tabs-custom border-bottom-0" role="tablist">
+										<li class="nav-item"><a
+											class="nav-link active fw-semibold" data-bs-toggle="tab"
+											href="#announce_content_view" role="tab"> 게시글 내용 </a></li>
+										<li class="nav-item" th:if="${announceList.announceFile != null and !#lists.isEmpty(announceList.announceFile)}"><a class="nav-link fw-semibold"
+											data-bs-toggle="tab" href="#announce_file_view" role="tab">
+												첨부 파일 </a></li>
+									</ul>
+								</div>
+								<!-- end card body -->
+							</div>
+						</div>
+						<div class="tab-content text-muted">
+							<div class="tab-pane fade show active" id="announce_content_view"
+								role="tabpanel">
+								<div class="row">
+									<div class="card">
+										<div class="card-body">
+
+											<!--TOAST UI Editor-->
+											<script src="https://uicdn.toast.com/editor/latest/toastui-editor-viewer.js"></script>
+
+											<!-- 내용이 포함된 div 숨김처리 -->
+											<div id="acontent" style="display: none;"
+												th:text="${announceList.announce_content}"></div>
+
+											<!-- TOAST UI Editor가 들어갈 div 태그 -->
+											<div id="editorContent"></div>
+
+											<script>
+												document.addEventListener('DOMContentLoaded', function () {
+													// 서버에서 렌더링된 HTML 콘텐츠를 가져오기
+													const content = document.querySelector('#acontent').textContent;
+														
+													// TOAST UI Editor 인스턴스 생성
+													const editor = new toastui.Editor({
+														 el: document.querySelector('#editorContent'),
+														 viewer: true, // 읽기 전용 모드
+														 initialValue: content // 서버에서 가져온 HTML 콘텐츠 설정
+													});
+												});
+											</script>
+											
+										</div>
+										<!-- end card body -->
+									</div>
+									<!-- end card -->
+								</div>
+								<!-- end row -->
+							</div>
+							<div class="tab-pane fade" id="announce_file_view"
+								role="tabpanel" th:if="${announceList.announceFile != null and !#lists.isEmpty(announceList.announceFile)}">
+								<div class="row">
+									<div class="card">
+										<div class="card-body">
+											<!-- 파일 조회 -->
+											<div class="pt-3 border-top border-top-dashed mt-4">
+												<h6 class="mb-3 fw-semibold text-uppercase">
+													<i class="ri-download-cloud-2-line align-bottom me-1"></i>첨부
+													파일
+												</h6>
+												<div class="row g-3">
+													<!-- 파일 목록 반복 -->
+													<div th:each="file : ${announceList.announceFile}">
+														<div class="col-xxl-4 col-lg-6">
+															<div class="border rounded border-dashed p-2">
+																<div class="d-flex align-items-center">
+																	<div class="flex-shrink-0 me-3">
+																		<div class="avatar-sm">
+																			<div
+																				class="avatar-title bg-light text-secondary rounded fs-24">
+																				<i class="ri-folder-zip-line"></i>
+																			</div>
+																		</div>
+																	</div>
+																	<div class="flex-grow-1 overflow-hidden">
+																		<h5 class="fs-13 mb-1">
+																			<a class="text-body text-truncate d-block"
+																				th:text="${file.fileOriName}"></a>
+																		</h5>
+																	</div>
+																	<div class="flex-shrink-0 ms-2">
+																		<div class="d-flex gap-1">
+																			<a th:href="@{/download/{no}(no=${file.fileNo})}">
+																			<button type="button" id="file_download" class="btn btn-icon text-muted btn-sm fs-18">
+																				<i class="ri-download-2-line"></i>
+																			</button></a>
+																		</div>
+																	</div>
+																</div>
+															</div>
+														</div>
+													</div>
+													<!-- end col -->
+												</div>
+
+												<!-- end row -->
+												<div class="pt-3 border-top border-top-dashed mt-4"></div>
+												<!-- border -->
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- ene col -->
+						</div>
+						<!-- end row -->
+
+					</div>
+					<!-- end col -->
+				</div>
+				<!-- 이전 페이지 버튼 -->
+				<div style="text-align: center; margin-bottom: 20px">
+					<button type="button"
+						class="btn rounded-pill btn-primary waves-effect waves-light btn-lg"
+						onclick="goBack()">이전 페이지 이동</button>
+					<a th:href="@{/announce}">
+						<button type="button" class="btn rounded-pill btn-primary waves-effect waves-light btn-lg">
+						<i class="ri-clipboard-line align-bottom me-1"></i> 게시판 목록</button></a>
+				</div>
+				<!--  container-fluid 위치-->
+				<!--end row-->
+			</div>
+		</div>
+	</div>
+
+	<th:block layout:fragment="pagejs">
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+		<!-- announce-detail js -->
+		<script src="/assets/js/pages/announce-detail.js"></script>
+	</th:block>
+
+</body>
+
+</html>

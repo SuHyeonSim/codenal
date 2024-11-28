@@ -1,0 +1,569 @@
+<html data-sidebar="light" xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="https://www.ultraq.net.nz/tymeleaf/layout">
+<style>
+.nav-link {
+	color: #abb9e8;
+
+}
+.nav-link.active {
+	color: #ffffff;
+	background-color: #abb9e8;
+}
+</style>
+
+<body>
+	<div th:fragment="sidebar" th:remove="tag">
+		<!-- ========== App Menu ========== -->
+		<div class="app-menu navbar-menu">
+			<!-- LOGO -->
+			<div class="navbar-brand-box">
+				<!-- Dark Logo-->
+				<a href="/" class="logo logo-dark">
+					<span class="logo-sm">
+						<img src="/assets/images/main-logo.png" alt="" height="22">
+					</span>
+					<span class="logo-lg">
+						<img src="/assets/images/main-logo.png" alt="" height="26">
+					</span>
+				</a>
+				<!-- Light Logo-->
+				<a href="/" class="logo logo-light">
+					<span class="logo-sm">
+						<img src="/assets/images/logo-sm.png" alt="" height="22">
+					</span>
+					<span class="logo-lg">
+						<img src="/assets/images/logo-light.png" alt="" height="17">
+					</span>
+				</a>
+				<button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover"
+					id="vertical-hover">
+					<i class="ri-record-circle-line"></i>
+				</button>
+			</div>
+			
+			<!-- 로그인 멤버 아이디 추출 -->
+			<input type="hidden" id="empId" th:value="${empId}">
+			<input type="hidden" id="csrf_token" th:value="${_csrf.token}"/>
+			
+			<div id="scrollbar">
+				<div class="container-fluid">
+
+					<div id="two-column-menu">
+					</div>
+					<ul class="navbar-nav" id="navbar-nav">
+						<li class="menu-title"><span data-key="t-menu">메뉴</span></li>
+						<li class="nav-item">
+							<a class="nav-link menu-link" href="/"
+								role="button" aria-expanded="false">
+								<i class="ri-home-4-line"></i> <span>메인화면</span>
+							</a>
+							<div class="collapse menu-dropdown" id="sidebarDashboards">
+								<ul class="nav nav-sm flex-column">
+									<li class="nav-item">
+										<a href="/dashboard-projects" class="nav-link" data-key="t-projects">
+											메인 </a>
+									</li>
+								</ul>
+							</div>
+						</li> <!-- end Dashboard Menu -->
+						
+						<!--------------------- 수수수영 추가 ------------- -->
+						<li class="nav-item" th:if="${#authentication.name} == '12345678'">
+							<a class="nav-link menu-link" href="#sidebarLayouts" data-bs-toggle="collapse" role="button"
+								aria-expanded="false" aria-controls="sidebarLayouts">
+								<i class="ri-layout-3-line"></i> <span>직원 관리</span> 
+							</a>
+							<div class="collapse menu-dropdown" id="sidebarLayouts">
+								<ul class="nav nav-sm flex-column">
+									<li class="nav-item">
+									</li>
+									<li>
+										<a th:href="@{/admin/list}" class="nav-link"> 직원 정보 관리 </a>
+									</li>
+									<li class="nav-item">
+										<a th:href="@{/admin/dept}" class="nav-link"> 부서 관리 </a>
+									</li>
+								</ul>
+							</div>
+						</li>
+						
+						<!-- <li class="nav-item" th:if="${#authentication.name} == '12345678'">
+							<a href="#sidebarAttendanceManager" class="nav-link menu-link"
+								role="button" aria-expanded="false">
+								<i class="bx bx-time-five"></i> <span>근태 관리</span>
+							</a>
+						</li> -->
+						
+						<!-- 사이드바 커스텀(드롭다운) -->
+						
+						<li th:if="${#authentication.name} != '12345678'" class="nav-item">
+							<a href="#sidebarProfile" class="nav-link menu-link" data-bs-toggle="collapse"
+								role="button" aria-expanded="false" aria-controls="sidebarProfile">
+								<i class="bx bx-user-circle"></i> 
+								<span> 마이페이지 </span>
+							</a>
+							<div class="collapse menu-dropdown" id="sidebarProfile">
+								<ul class="nav nav-sm flex-column">
+									<li class="nav-item">
+										<a href="/mypage" class="nav-link">
+											개인정보 상세 </a>
+									</li>
+									
+								</ul>
+							</div>
+						</li>
+						
+						
+						<!-- 사이드바 커스텀(단일) -->
+						
+						<li th:if="${#authentication.name} != '12345678'" class="nav-item">
+							<a href="/apps-calendar" class="nav-link menu-link">
+								<i class="ri-calendar-line"></i> <span>캘린더</span>
+							</a>
+						</li>
+						
+						
+						
+						<li th:if="${#authentication.name} != '12345678'" class="nav-item">
+							<a href="/apps-file-manager" class="nav-link menu-link">
+								<i class="bx bx-folder"></i> <span>문서함</span>
+							</a>
+						</li>
+						
+						<li th:if="${#authentication.name} != '12345678'" class="nav-item">
+						<a class="nav-link menu-link"
+							href="#sidebarApproval" data-bs-toggle="collapse" role="button"
+							aria-expanded="false" aria-controls="sidebarApproval"> <i
+								class="ri-pages-line"></i> <span>전자결재</span>
+						</a>
+							<div class="collapse menu-dropdown" id="sidebarApproval">
+								<ul class="nav nav-sm flex-column">
+									<li class="nav-item"><a href="#sidebarApprovalList"
+										class="nav-link" data-bs-toggle="collapse" role="button"
+										aria-expanded="false" aria-controls="sidebarApprovalList">
+											결재서 작성 </a>
+										<div class="collapse menu-dropdown" id="sidebarApprovalList">
+										
+											<ul class="nav nav-sm flex-column">
+												<li class="nav-item"><a
+													th:href="@{/approval/leave_create/1}" class="nav-link">
+														근태 신청서 </a></li>
+												<li class="nav-item"><a th:href="@{/approval/create/2}"
+													class="nav-link"> 품의서 </a></li>
+												<li class="nav-item"><a th:href="@{/approval/create/3}"
+													class="nav-link"> 요청서 </a></li>
+											</ul>
+										</div> <a href="#sidebarApprovalManager" class="nav-link"
+										data-bs-toggle="collapse" role="button" aria-expanded="false"
+										aria-controls="sidebarApprovalManager"> 상신함 </a>
+										<div class="collapse menu-dropdown"
+											id="sidebarApprovalManager">
+											<ul class="nav nav-sm flex-column">
+												<li class="nav-item"><a
+													th:href="@{/approval/list(num=${0})}" class="nav-link">대기</a>
+												</li>
+												<li class="nav-item"><a
+													th:href="@{/approval/list(num=${1})}" class="nav-link">진행중</a>
+												</li>
+												<li class="nav-item"><a
+													th:href="@{/approval/list(num=${2})}" class="nav-link">완료</a>
+												</li>
+												<li class="nav-item"><a
+													th:href="@{/approval/list(num=${3})}" class="nav-link">반려</a>
+												</li>
+												<li class="nav-item"><a
+													th:href="@{/approval/list(num=${4})}" class="nav-link">회수</a>
+												</li>
+											</ul>
+										</div> 
+										<li class="nav-item">
+						                <a href="#sidebarApprovalreceive" class="nav-link" data-bs-toggle="collapse"
+						                   role="button" aria-expanded="false" aria-controls="sidebarApprovalreceive">
+						                    수신함
+						                </a>
+						                <div class="collapse menu-dropdown" id="sidebarApprovalreceive">
+						                    <ul class="nav nav-sm flex-column">
+						                        <li class="nav-item">
+						                            <a th:href="@{/approval/inboxList(num=${1})}" class="nav-link">대기</a>
+						                        </li>
+						                        <li class="nav-item">
+						                            <a th:href="@{/approval/inboxList(num=${2})}" class="nav-link">완료</a>
+						                        </li>
+						                        <li class="nav-item">
+						                            <a th:href="@{/approval/inboxList(num=${3})}" class="nav-link">반려</a>
+						                        </li>
+						                        <li class="nav-item">
+						                            <a th:href="@{/approval/inboxList(num=${4})}" class="nav-link">수신참조</a>
+						                        </li>
+						                    </ul>
+						                </div>
+						            </li>
+						        </ul>
+						    </div>
+						</li>
+						
+						<li th:if="${#authentication.name} != '12345678'" class="nav-item">
+							<a th:href="@{/employee/addressBook}" class="nav-link menu-link">
+								<i class="bx bx-user"></i> <span>주소록</span>
+							</a>
+						</li>
+						
+						<li th:if="${#authentication.name} != '12345678'" class="nav-item">
+							<a href="/chatList" class="nav-link menu-link">
+								<i class="ri-chat-3-line"></i> <span>채팅</span>
+							</a>
+						</li>
+						
+						<li class="nav-item" th:if="${#authentication.name} != '12345678'">
+							<a href="#sidebarAttendanceManager" class="nav-link menu-link" data-bs-toggle="collapse"
+								role="button" aria-expanded="false" aria-controls="sidebarAttendanceManager">
+								<i class="bx bx-time-five"></i> <span>근태 관리</span>
+							</a>
+							<div class="collapse menu-dropdown" id="sidebarAttendanceManager">
+								<ul class="nav nav-sm flex-column">
+									<li class="nav-item">
+										<a href="/apps-attendance" class="nav-link"> 출퇴근 관리 </a>
+									</li>
+									<li class="nav-item">
+										<a href="/apps-work-history" class="nav-link"> 근무내역 관리 </a>
+									</li>
+									<li class="nav-item">
+										<a href="/apps-annual-leave" class="nav-link"> 연차 관리 </a>
+									</li>
+								</ul>
+							</div>
+						</li>
+						
+						<li class="nav-item" th:if="${#authentication.name} != '12345678'">
+							<a href="/announce" class="nav-link menu-link">
+								<i class="ri-survey-line"></i> <span>게시판</span>
+							</a>
+						</li>
+						
+						
+						<li class="nav-item">
+							<a href="#sidebarReserve" class="nav-link menu-link" data-bs-toggle="collapse"
+								role="button" aria-expanded="false" aria-controls="sidebarReserve">
+								<i class="ri-slideshow-line"></i> <span>회의실 예약</span>
+							</a> 
+							<div class="collapse menu-dropdown" id="sidebarReserve">
+								<ul class="nav nav-sm flex-column">
+									<li class="nav-item" >
+										<a th:if="${#authentication.name} != '12345678'" href="/apps-meeting-room" class="nav-link" > 회의실 예약 </a>
+										<a th:if="${#authentication.name} == '12345678'" href="/apps-meeting-room" class="nav-link" > 회의실 관리 </a>
+									</li>
+									<li class="nav-item">
+										<a th:if="${#authentication.name} == '12345678'" href="/apps-meeting-room-check" class="nav-link"> 회의실 추가 </a>
+									</li>
+									<li class="nav-item">
+										<a th:if="${#authentication.name} != '12345678'" href="/apps-meeting-room-reserve-list" class="nav-link"> 회의실 예약 확인 </a>
+									</li>
+								</ul>
+							</div>
+						</li>
+						
+						
+						<li class="nav-item" th:if="${#authentication.name} == '12345678'">
+						<a class="nav-link menu-link"
+							href="/admin/approval_list" aria-expanded="false"> <i
+								class="ri-pages-line"></i> <span>전자결재 관리</span>
+						</a>
+						
+						
+						<li>
+
+						
+<!-- 						<li class="menu-title"><i class="ri-more-fill"></i> <span
+								data-key="t-components">Components</span></li>
+
+						<li class="nav-item">
+							<a class="nav-link menu-link" href="#sidebarUI" data-bs-toggle="collapse" role="button"
+								aria-expanded="false" aria-controls="sidebarUI">
+								<i class="ri-pencil-ruler-2-line"></i> <span data-key="t-base-ui">Base UI</span>
+							</a>
+							<div class="collapse menu-dropdown mega-dropdown-menu" id="sidebarUI">
+								<div class="row">
+									<div class="col-lg-4">
+										<ul class="nav nav-sm flex-column">
+											<li class="nav-item">
+												<a href="/ui-alerts" class="nav-link" data-key="t-alerts">Alerts</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-badges" class="nav-link" data-key="t-badges">Badges</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-buttons" class="nav-link"
+													data-key="t-buttons">Buttons</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-colors" class="nav-link" data-key="t-colors">Colors</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-cards" class="nav-link" data-key="t-cards">Cards</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-carousel" class="nav-link"
+													data-key="t-carousel">Carousel</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-dropdowns" class="nav-link"
+													data-key="t-dropdowns">Dropdowns</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-grid" class="nav-link" data-key="t-grid">Grid</a>
+											</li>
+										</ul>
+									</div>
+									<div class="col-lg-4">
+										<ul class="nav nav-sm flex-column">
+											<li class="nav-item">
+												<a href="/ui-images" class="nav-link" data-key="t-images">Images</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-tabs" class="nav-link" data-key="t-tabs">Tabs</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-accordions" class="nav-link"
+													data-key="t-accordion-collapse">Accordion & Collapse</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-modals" class="nav-link" data-key="t-modals">Modals</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-offcanvas" class="nav-link"
+													data-key="t-offcanvas">Offcanvas</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-placeholders" class="nav-link"
+													data-key="t-placeholders">Placeholders</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-progress" class="nav-link"
+													data-key="t-progress">Progress</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-notifications" class="nav-link"
+													data-key="t-notifications">Notifications</a>
+											</li>
+										</ul>
+									</div>
+									<div class="col-lg-4">
+										<ul class="nav nav-sm flex-column">
+											<li class="nav-item">
+												<a href="/ui-media" class="nav-link" data-key="t-media-object">Media
+													object</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-embed-video" class="nav-link"
+													data-key="t-embed-video">Embed
+													Video</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-typography" class="nav-link"
+													data-key="t-typography">Typography</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-lists" class="nav-link" data-key="t-lists">Lists</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-general" class="nav-link"
+													data-key="t-general">General</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-ribbons" class="nav-link"
+													data-key="t-ribbons">Ribbons</a>
+											</li>
+											<li class="nav-item">
+												<a href="/ui-utilities" class="nav-link"
+													data-key="t-utilities">Utilities</a>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</li>
+
+						<li class="nav-item">
+							<a class="nav-link menu-link" href="#sidebarAdvanceUI" data-bs-toggle="collapse"
+								role="button" aria-expanded="false" aria-controls="sidebarAdvanceUI">
+								<i class="ri-stack-line"></i> <span data-key="t-advance-ui">Advance UI</span>
+							</a>
+							<div class="collapse menu-dropdown" id="sidebarAdvanceUI">
+								<ul class="nav nav-sm flex-column">
+									<li class="nav-item">
+										<a href="/advance-ui-sweetalerts" class="nav-link"
+											data-key="t-sweet-alerts">Sweet
+											Alerts</a>
+									</li>
+									<li class="nav-item">
+										<a href="/advance-ui-nestable" class="nav-link"
+											data-key="t-nestable-list">Nestable
+											List</a>
+									</li>
+									<li class="nav-item">
+										<a href="/advance-ui-scrollbar" class="nav-link"
+											data-key="t-scrollbar">Scrollbar</a>
+									</li>
+									<li class="nav-item">
+										<a href="/advance-ui-animation" class="nav-link"
+											data-key="t-animation">Animation</a>
+									</li>
+									<li class="nav-item">
+										<a href="/advance-ui-tour" class="nav-link" data-key="t-tour">Tour</a>
+									</li>
+									<li class="nav-item">
+										<a href="/advance-ui-swiper" class="nav-link"
+											data-key="t-swiper-slider">Swiper
+											Slider</a>
+									</li>
+									<li class="nav-item">
+										<a href="/advance-ui-ratings" class="nav-link"
+											data-key="t-ratings">Ratings</a>
+									</li>
+									<li class="nav-item">
+										<a href="/advance-ui-highlight" class="nav-link"
+											data-key="t-highlight">Highlight</a>
+									</li>
+									<li class="nav-item">
+										<a href="/advance-ui-scrollspy" class="nav-link"
+											data-key="t-scrollSpy">ScrollSpy</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+
+						<li class="nav-item">
+							<a class="nav-link menu-link" href="/widgets">
+								<i class="ri-honour-line"></i> <span data-key="t-widgets">Widgets</span>
+							</a>
+						</li>
+
+						<li class="nav-item">
+							<a class="nav-link menu-link" href="#sidebarForms" data-bs-toggle="collapse" role="button"
+								aria-expanded="false" aria-controls="sidebarForms">
+								<i class="ri-file-list-3-line"></i> <span data-key="t-forms">Forms</span>
+							</a>
+							<div class="collapse menu-dropdown" id="sidebarForms">
+								<ul class="nav nav-sm flex-column">
+									<li class="nav-item">
+										<a href="/forms-elements" class="nav-link" data-key="t-basic-elements">Basic
+											Elements</a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-select" class="nav-link" data-key="t-form-select"> Form
+											Select </a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-checkboxs-radios" class="nav-link"
+											data-key="t-checkboxs-radios">Checkboxs & Radios</a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-pickers" class="nav-link" data-key="t-pickers"> Pickers </a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-masks" class="nav-link" data-key="t-input-masks">Input
+											Masks</a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-advanced" class="nav-link"
+											data-key="t-advanced">Advanced</a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-range-sliders" class="nav-link" data-key="t-range-slider">
+											Range
+											Slider </a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-validation" class="nav-link"
+											data-key="t-validation">Validation</a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-wizard" class="nav-link" data-key="t-wizard">Wizard</a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-editors" class="nav-link" data-key="t-editors">Editors</a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-file-uploads" class="nav-link"
+											data-key="t-file-uploads">File
+											Uploads</a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-layouts" class="nav-link" data-key="t-form-layouts">Form
+											Layouts</a>
+									</li>
+									<li class="nav-item">
+										<a href="/forms-select2" class="nav-link" data-key="t-select2">Select2</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+						
+						<li class="nav-item">
+							<a class="nav-link menu-link" href="#sidebarIcons" data-bs-toggle="collapse" role="button"
+								aria-expanded="false" aria-controls="sidebarIcons">
+								<i class="ri-compasses-2-line"></i> <span data-key="t-icons">Icons</span>
+							</a>
+							<div class="collapse menu-dropdown" id="sidebarIcons">
+								<ul class="nav nav-sm flex-column">
+									<li class="nav-item">
+										<a href="/icons-remix" class="nav-link" data-key="t-remix">Remix</a>
+									</li>
+									<li class="nav-item">
+										<a href="/icons-boxicons" class="nav-link"
+											data-key="t-boxicons">Boxicons</a>
+									</li>
+									<li class="nav-item">
+										<a href="/icons-materialdesign" class="nav-link"
+											data-key="t-material-design">Material Design</a>
+									</li>
+									<li class="nav-item">
+										<a href="/icons-lineawesome" class="nav-link" data-key="t-line-awesome">Line
+											Awesome</a>
+									</li>
+									<li class="nav-item">
+										<a href="/icons-feather" class="nav-link" data-key="t-feather">Feather</a>
+									</li>
+									<li class="nav-item">
+										<a href="/icons-crypto" class="nav-link"> <span
+												data-key="t-crypto-svg">Crypto SVG</span></a>
+									</li>
+								</ul>
+							</div>
+						</li>
+ -->
+					</ul>
+				</div>
+				<!-- Sidebar -->
+			</div>
+
+			<div class="sidebar-background"></div>
+		</div>
+		<!-- Left Sidebar End -->
+		<!-- Vertical Overlay-->
+		<div class="vertical-overlay"></div>
+	</div>
+</body>
+
+<script type="text/javascript">
+window.onload=()=>{
+console.log('확인');
+const csrfToken = document.getElementById('csrf_token').value;
+fetch('/sidebar', {
+	method: 'POST',
+	headers: {
+            'X-CSRF-TOKEN': csrfToken
+        }
+})
+.then(response => response.json())
+.then(data => {
+	alert('성공');
+});
+	
+}
+</script>
+
+
+
+
+</html>

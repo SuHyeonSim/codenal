@@ -1,0 +1,200 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}" data-sidebar="light">
+
+<th:block layout:fragment="pagetitle">
+	<div th:replace="~{partials/title-meta :: title-meta('직원 정보 상세')}"></div>
+</th:block>
+
+<head>
+	<style>
+		/* 사번, 개인번호, 주민등록번호, 주소, 상세주소, 입사일, 퇴사일 */
+		#lastnameInput,
+		#phonenumberInput,
+		#emailInput,
+		#addressInput,
+		#addressDetailInput,
+		#hireDateInput,
+		#endDateInput {
+			background-color: #eeeeeea8;
+			border: 1px solid #e6e6e6;
+		}
+	</style>
+	<meta name="_csrf" th:content="${_csrf.token}" />
+	<meta name="_csrf_header" th:content="${_csrf.headerName}" />
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<div th:replace="partials/page-title :: page-title('직원 정보 관리','직원 관리')"></div>
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="card body">
+					<!-- ----------------------탭---------------------------- -->
+					<div class="card-header">
+						<ul class="nav nav-tabs-custom rounded card-header-tabs border-bottom-0" role="tablist">
+							<li class="nav-item col-lg-1"><a class="nav-link active" data-bs-toggle="tab" href="#personalDetails" role="tab" style="font-size: 18px; text-align: center; font-weight: bold;"> <i class="fas fa-home"></i> 직원 정보
+							</a></li>
+						</ul>
+					</div>
+
+					<div class="card-body">
+						<div class="tab-content">
+							<!-- ------------------------직원 정보----------------------------- -->
+							<div class="tab-pane active" id="personalUpdate" role="tabpanel">
+								<div class="row">
+									<form th:action="@{/admin/update/{empId}(empId=${employeeDetail.empId})}" th:object="${employeeDetail}" method="post" id="employeeUpdateForm">
+
+										<div class="row d-flex justify-content-center align-items-center">
+											<!-- 이름 -->
+											<div class="col-lg-5">
+												<div class="mb-3">
+													<label for="firstnameInput" class="form-label" style="font-size: 16px; font-weight: bold;">이름
+														<span class="text-danger">*</span></label>
+													<input type="text" class="form-control" id="firstnameInput" th:field="*{empName}" required>
+												</div>
+											</div>
+											<div class="col-sm-1"></div>
+
+											<!-- 사번 -->
+											<div class="col-lg-5">
+												<div class="mb-3">
+													<label for="lastnameInput" class="form-label" style="font-size: 16px; font-weight: bold;">사번</label>
+													<input type="text" class="form-control" id="lastnameInput" th:field="*{empId}" readonly>
+												</div>
+											</div>
+
+											<!-- 개인 번호 -->
+											<div class="col-lg-5">
+												<div class="mb-3">
+													<label for="phonenumberInput" class="form-label" style="font-size: 16px; font-weight: bold;">개인 번호</label>
+													<input type="text" class="form-control" id="phonenumberInput" th:field="*{empPhone}" readonly>
+												</div>
+											</div>
+											<div class="col-sm-1"></div>
+
+											<!-- 주민 등록 번호 -->
+											<div class="col-lg-5">
+												<div class="mb-3">
+													<label for="emailInput" class="form-label" style="font-size: 16px; font-weight: bold;">주민 등록 번호</label>
+													<input type="text" class="form-control" id="emailInput" th:field="*{empSsn}" readonly>
+												</div>
+											</div>
+
+											<!-- 주소 -->
+											<div class="col-lg-5">
+												<div class="mb-3">
+													<label for="addressInput" class="form-label">주소</label>
+													<input type="text" class="form-control" id="addressInput" th:field="*{empAddress}" readonly>
+												</div>
+											</div>
+											<div class="col-sm-1"></div>
+
+											<!-- 상세 주소 -->
+											<div class="col-lg-5">
+												<div class="mb-3">
+													<label for="addressDetailInput" class="form-label" style="font-size: 16px; font-weight: bold;">상세 주소</label>
+													<input type="text" class="form-control" id="addressDetailInput" th:field="*{empAddressDetail}" readonly>
+												</div>
+											</div>
+
+											<!-- 부서 -->
+											<div class="col-lg-5">
+												<div class="mb-3">
+													<label for="departmentInput" class="form-label" style="font-size: 16px; font-weight: bold;">부서
+														<span class="text-danger">*</span></label>
+													<select class="form-select" id="departmentInput" th:field="*{deptNo}" required>
+														<option value="" style="color: gray;">부서를 선택하세요</option>
+														<th:block th:each="dept : ${departments}">
+															<option th:value="${dept.deptNo}" th:text="${dept.deptName}" th:selected="${dept.deptNo == employeeDetail.deptNo}"></option>
+														</th:block>
+													</select>
+													<div class="invalid-feedback">부서를 선택해주세요.</div>
+												</div>
+											</div>
+											<div class="col-sm-1"></div>
+
+											<!-- 직급 -->
+											<div class="col-lg-5">
+												<div class="mb-3">
+													<label for="jobInput" class="form-label" style="font-size: 16px; font-weight: bold;">직급
+														<span class="text-danger">*</span></label>
+													<select class="form-select" id="jobInput" th:field="*{jobNo}" required>
+														<option value="" style="color: gray;">직급을 선택하세요</option>
+														<th:block th:each="job : ${jobs}">
+															<option th:value="${job.jobNo}" th:text="${job.jobName}" th:selected="${job.jobNo == employeeDetail.jobNo}"></option>
+														</th:block>
+													</select>
+													<div class="invalid-feedback">직급을 선택해주세요.</div>
+												</div>
+											</div>
+
+
+											<!-- 입사일 -->
+											<div class="col-lg-5">
+												<div class="mb-3">
+													<label for="hireDateInput" class="form-label" style="font-size: 16px; font-weight: bold;">입사일</label>
+													<input type="text" class="form-control" id="hireDateInput" th:field="*{empHire}" readonly>
+												</div>
+											</div>
+											<div class="col-sm-1"></div>
+
+											<!-- 퇴사일 -->
+											<div class="col-lg-5">
+												<div class="mb-3">
+													<label for="endDateInput" class="form-label" style="font-size: 16px; font-weight: bold;">퇴사일</label>
+													<input type="text" class="form-control" id="endDateInput" th:field="*{empEnd}" readonly>
+												</div>
+											</div>
+											<div class="mb-4"></div>
+
+											<!-- 완료/취소 버튼 -->
+											<div class="col-lg-12">
+												<div class="hstack gap-3 justify-content-end">
+													<button type="button" class="btn btn-primary btn-border w-xs" id="updateEmployeeButton" style="font-size: 16px; font-weight: bold;">완료</button>
+													<a class="btn btn-soft-dark waves-effect waves-light material-shadow-none w-xs" th:href="@{/admin/detail/{empId}(empId=${employeeDetail.empId})}" style="font-size: 16px; font-weight: bold;"> 취소 </a>
+												</div>
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<th:block layout:fragment="pagejs">
+		<script src="/assets/libs/prismjs/prism.js"></script>
+		<script src="https://cdn.lordicon.com/libs/mssddfmo/lord-icon-2.1.0.js"></script>
+		<script src="/assets/js/pages/modal.init.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+		<script>
+			document.addEventListener('DOMContentLoaded', function () {
+				const updateButton = document.getElementById('updateEmployeeButton');
+				const employeeUpdateForm = document.getElementById('employeeUpdateForm');
+
+				updateButton.addEventListener('click', function () {
+					Swal.fire({
+						title: '직원 정보 수정',
+						text: "직원 정보를 수정하시겠습니까?",
+						icon: 'warning',
+						showCancelButton: true,
+						confirmButtonColor: '#3085d6',
+						cancelButtonColor: '#d33',
+						confirmButtonText: '예, 수정합니다',
+						cancelButtonText: '취소'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							employeeUpdateForm.submit();
+						}
+					});
+				});
+			});
+		</script>
+	</th:block>
+</body>
+
+</html>

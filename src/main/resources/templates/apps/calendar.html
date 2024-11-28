@@ -1,0 +1,405 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout}" data-sidebar="light">
+
+<th:block layout:fragment="pagetitle">
+	<!--page title-->
+	<div th:replace="partials/title-meta :: title-meta('캘린더')"></div>
+</th:block>
+
+
+<head>
+<!-- fullcalendar css -->
+<link href="/assets/libs/fullcalendar/main.min.css" rel="stylesheet"
+	type="text/css" />
+<!-- 폰트 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+    	<style type="text/css">
+			* {font-family: "Noto Sans KR", sans-serif !important;} 
+		</style>
+	
+
+</head>
+
+<body>
+	<div layout:fragment="content">
+
+		<div th:replace="partials/page-title :: page-title('캘린더','메인화면')"></div>
+			
+		<div class="row">
+			<div class="col-12">
+				<div class="row">
+					<div class="col-xl-3">
+						<div class="card card-h-100">
+							<div class="card-body">
+								<button class="btn btn-primary w-100" id="btn-new-event">
+									<i class="mdi mdi-plus"></i> 새 일정 추가
+								</button>
+								<input type="hidden" id="empId" th:value="${empId}">
+								<input type="hidden" id="_csrf_header" value="X-CSRF-Token"/>
+								<input type="hidden" id="csrf_token" th:value="${_csrf.token}"/>
+								<div id="external-events">
+									<br>
+									<p class="text-muted">그래그 앤 드롭으로 일정을 추가해보세요.</p>
+									<div
+										class="external-event fc-event bg-soft-success text-success"
+										data-class="bg-soft-success">
+										<i class="mdi mdi-checkbox-blank-circle font-size-11 me-2"></i>[개인]
+									</div>
+									<div class="external-event fc-event bg-soft-info text-info"
+										data-class="bg-soft-info">
+										<i class="mdi mdi-checkbox-blank-circle font-size-11 me-2"></i>[부서]
+									</div>
+									<div
+										class="external-event fc-event bg-soft-warning text-warning"
+										data-class="bg-soft-warning">
+										<i class="mdi mdi-checkbox-blank-circle font-size-11 me-2"></i>[전체]
+									</div>
+									<!-- <div class="external-event fc-event bg-soft-primary text-primary"
+										data-class="bg-soft-primary">
+										<i class="mdi mdi-checkbox-blank-circle font-size-11 me-2"></i>[연차]
+									</div> -->
+								</div>
+								<!-- Accordion Flush Example -->
+								<!-- <div class="accordion accordion-flush mt-2 data-simplebar"
+									id="accordionFlushExample">
+									<div class="text-black">
+										<h2 class="accordion-header" id="flush-heading1">
+											<button class="accordion-button p-2 text-black" type="button"
+												data-bs-toggle="collapse"
+												data-bs-target="#flush-collapse1" aria-expanded="false"
+												aria-controls="flush-collapse1" 
+												style="border: 0px; background-color: white; font-size: 13px; width: 100%; font-family: 'Noto Sans KR', sans-serif;">
+												개인일정
+												<button class="mdi mdi-plus" style="position: relative; left: 120px; z-index: 9"></button>
+												
+												</button>
+										</h2>
+										<div id="flush-collapse1"
+											class="accordion-collapse collapse show"
+											aria-labelledby="flush-heading1"
+											data-bs-parent="#accordionFlushExample">
+											<div id="upcoming-event-list"></div>
+										</div>
+									</div>
+									<div class="">
+										<h2 class="accordion-header" id="flush-heading2">
+											<button class="accordion-button collapsed p-2" type="button"
+												data-bs-toggle="collapse"
+												data-bs-target="#flush-collapse2" aria-expanded="false"
+												aria-controls="flush-collapse2" 
+												style="border: 0px; background-color: white; font-size: 13px; width: 100%; font-family: 'Noto Sans KR', sans-serif;">
+												부서일정
+												<button class="mdi mdi-plus" style="position: relative; left: 120px; z-index: 9"></button>
+												
+												</button>
+										</h2>
+										<div id="flush-collapse2"
+											class="accordion-collapse collapse"
+											aria-labelledby="flush-heading2"
+											data-bs-parent="#accordionFlushExample">
+											<div id="upcoming-event-list2"></div>
+										</div>
+									</div>
+									<div class="">
+										<h2 class="accordion-header" id="flush-heading3">
+											<button class="accordion-button collapsed p-2" type="button"
+												data-bs-toggle="collapse"
+												data-bs-target="#flush-collapse3" aria-expanded="false"
+												aria-controls="flush-collapse3" 
+												style="border: 0px; background-color: white; font-size: 13px; width: 100%; font-family: 'Noto Sans KR', sans-serif;">
+												전체일정
+												<button class="mdi mdi-plus" style="position: relative; left: 120px; z-index: 9"></button>
+												
+												</button>
+										</h2>
+										<div id="flush-collapse3"
+											class="accordion-collapse collapse"
+											aria-labelledby="flush-heading3"
+											data-bs-parent="#accordionFlushExample">
+											<div id="upcoming-event-list3"></div>
+										</div>
+									</div>
+									<div class="">
+										<h2 class="accordion-header" id="flush-heading4">
+											<button class="accordion-button collapsed p-2" type="button"
+												data-bs-toggle="collapse"
+												data-bs-target="#flush-collapse4" aria-expanded="false"
+												aria-controls="flush-collapse4" 
+												style="border: 0px; background-color: white; font-size: 13px; width: 100%; font-family: 'Noto Sans KR', sans-serif;">
+												연차일정
+												<button class="mdi mdi-plus" style="position: relative; left: 120px; z-index: 9"></button>
+												
+												</button>
+										</h2>
+										<div id="flush-collapse4"
+											class="accordion-collapse collapse"
+											aria-labelledby="flush-heading4"
+											data-bs-parent="#accordionFlushExample">
+											<div id="upcoming-event-list4"></div>
+										</div>
+									</div>
+									
+								</div> -->
+
+							</div>
+						</div>
+						<div>
+							<h5 class="mb-1">다가오는 일정</h5>
+							<p class="text-muted">일정을 놓치지 않도록 주의하세요.</p>
+							<div class="pe-2 me-n1 mb-3" data-simplebar style="height: 400px">
+								<div id="upcoming-event-list"></div>
+							</div>
+						</div>
+
+						<div class="card">
+							<div class="card-body bg-soft-info">
+								<div class="d-flex">
+									<div class="flex-shrink-0">
+										<i data-feather="calendar" class="text-info icon-dual-info"></i>
+									</div>
+									<div class="flex-grow-1 ms-3">
+										<h6 class="fs-15" style="font-family: 'Noto Sans KR', sans-serif;">캘린더에 오신 것을 환영합니다!</h6>
+										<p class="text-muted mb-0">캘린더의 일정을 클릭하여 상세한 내용을 알아보세요.</p>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!--end card-->
+					</div>
+					<!-- end col-->
+
+					<div class="col-xl-9">
+						<div class="card card-h-100">
+							<div class="card-body">
+								<div id="calendar"></div>
+							</div>
+						</div>
+					</div>
+					<!-- end col -->
+				</div>
+				<!--end row-->
+
+				<div style='clear: both'></div>
+
+				<!-- Add New Event MODAL -->
+				<div class="modal fade" id="event-modal" tabindex="-1">
+					<div class="modal-dialog modal-dialog-centered">
+						<div class="modal-content border-0">
+							<div class="modal-header p-3 bg-soft-info">
+								<h5 class="modal-title" id="modal-title">일정</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal"
+									aria-hidden="true"></button>
+							</div>
+							<div class="modal-body p-4">
+								<form class="needs-validation" name="event-form" id="form-event"
+									novalidate>
+									<div class="text-end" id="modifyBtn">
+										<a href="#" class="btn btn-sm btn-soft-primary"
+											id="edit-event-btn" data-id="edit-event"
+											onclick="editEvent(this)" role="button">수정</a>
+									</div>
+									<div class="event-details">
+										<div class="d-flex mb-2">
+											<div class="flex-grow-1 d-flex align-items-center">
+												<div class="flex-shrink-0 me-3">
+													<i class="ri-calendar-event-line text-muted fs-16"></i>
+												</div>
+												<div class="flex-grow-1">
+													<h6 class="d-block fw-semibold mb-0"
+														id="event-start-date-tag"></h6>
+												</div>
+											</div>
+										</div>
+										<!-- 작성자 -->
+										<div class="d-flex align-items-center mb-2">
+											<div class="flex-shrink-0 me-3">
+												<i class="mdi mdi-account-edit-outline text-muted fs-16"></i>
+											</div>
+											<div class="flex-grow-1">
+												<h6 class="d-block fw-semibold mb-0">
+													<span id="event-writer"></span>
+												</h6>
+											</div>
+										</div>
+										
+										<div class="d-flex align-items-center mb-2">
+											<div class="flex-shrink-0 me-3">
+												<i class="ri-time-line text-muted fs-16"></i>
+											</div>
+											<div class="flex-grow-1">
+												<h6 class="d-block fw-semibold mb-0">
+													<span id="event-timepicker1-tag"></span> - <span
+														id="event-timepicker2-tag"></span>
+												</h6>
+											</div>
+										</div>
+										<div class="d-flex align-items-center mb-2">
+											<div class="flex-shrink-0 me-3">
+												<i class="ri-map-pin-line text-muted fs-16"></i>
+											</div>
+											<div class="flex-grow-1">
+												<h6 class="d-block fw-semibold mb-0">
+													<span id="event-location-tag"></span>
+												</h6>
+											</div>
+										</div>
+										<div class="d-flex mb-3">
+											<div class="flex-shrink-0 me-3">
+												<i class="ri-discuss-line text-muted fs-16"></i>
+											</div>
+											<div class="flex-grow-1">
+												<p class="d-block text-muted mb-0"
+													id="event-description-tag"></p>
+											</div>
+										</div>
+									</div>
+									<div class="row event-form">
+										<div class="col-12">
+											<div class="mb-3">
+												<label class="form-label">카테고리</label> <select
+													class="form-select d-none" name="category"
+													id="event-category" required>
+													<option value="bg-soft-success">개인일정</option>
+													<option value="bg-soft-info">부서일정</option>
+													<option value="bg-soft-warning">전체일정</option>
+													<!-- <option value="bg-soft-danger">Danger</option>
+													<option value="bg-soft-success">Success</option>
+													<option value="bg-soft-primary">Primary</option>
+													<option value="bg-soft-info">Info</option>
+													<option value="bg-soft-dark">Dark</option>
+													<option value="bg-soft-warning">Warning</option> -->
+												</select>
+												<div class="invalid-feedback">일정 카테고리를 선택해 주세요.</div>
+											</div>
+										</div>
+										<!--end col-->
+										<div class="col-12">
+											<div class="mb-3">
+												<label class="form-label">일정 제목</label> <input
+													class="form-control d-none" placeholder="일정 제목 입력"
+													type="text" name="title" id="event-title" required value="" />
+												<div class="invalid-feedback">일정 제목을 입력해주세요.</div>
+											</div>
+										</div>
+										
+										<!--end col-->
+										<div class="col-12">
+											<div class="mb-3">
+												<label>날짜</label>
+												<div class="input-group d-none">
+													<input type="text" id="event-start-date"
+														class="form-control flatpickr flatpickr-input"
+														placeholder="날짜 선택" readonly required> <span
+														class="input-group-text"><i
+														class="ri-calendar-event-line"></i></span>
+												</div>
+											</div>
+										</div>
+										<!--end col-->
+										<div class="col-12" id="event-time">
+											<div class="row">
+												<div class="col-6">
+													<div class="mb-3">
+														<label class="form-label">시작 시간</label>
+														<div class="input-group d-none">
+															<input id="timepicker1" type="text"
+																class="form-control flatpickr flatpickr-input"
+																placeholder="일정 시작 시간 선택" readonly> <span
+																class="input-group-text"><i class="ri-time-line"></i></span>
+														</div>
+													</div>
+												</div>
+												<div class="col-6">
+													<div class="mb-3">
+														<label class="form-label">종료 시간</label>
+														<div class="input-group d-none">
+															<input id="timepicker2" type="text"
+																class="form-control flatpickr flatpickr-input"
+																placeholder="일정 종료 시간 선택" readonly> <span
+																class="input-group-text"><i class="ri-time-line"></i></span>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+										<!--end col-->
+										<div class="col-12">
+											<div class="mb-3">
+												<label for="event-location">장소</label>
+												<div>
+													<input type="text" class="form-control d-none"
+														name="event-location" id="event-location"
+														placeholder="일정 장소 입력">
+												</div>
+											</div>
+										</div>
+										<!--end col-->
+										<input type="hidden" id="eventid" name="eventid" value="" />
+										<div class="col-12">
+											<div class="mb-3">
+												<label class="form-label">상세 내용</label>
+												<textarea class="form-control d-none" id="event-description"
+													placeholder="일정 상세 내용 입력" rows="3" spellcheck="false"></textarea>
+											</div>
+										</div>
+										<!--end col-->
+									</div>
+									<!--end row-->
+									<div class="hstack gap-2 justify-content-end" >
+										<button type="button" class="btn btn-soft-danger"
+											id="btn-delete-event">
+											<i class="ri-close-line align-bottom"></i> 삭제
+										</button>
+										<button type="submit" class="btn btn-success"
+											id="btn-save-event">일정 추가</button>
+									</div>
+								</form>
+							</div>
+						</div>
+						<!-- end modal-content-->
+					</div>
+					<!-- end modal dialog-->
+				</div>
+				<!-- end modal-->
+				<!-- end modal-->
+			</div>
+		</div>
+		<!-- end row-->
+	</div>
+
+	<th:block layout:fragment="pagejs">
+
+		<!-- calendar min js -->
+		<script src="/assets/libs/fullcalendar/main.min.js"></script>
+
+		<script type="text/javascript">
+			/* const payload = {
+					calendar_schedule_category : 1,
+					calendar_schedule_title : 'updatedTitle',
+					calendar_schedule_location : 'event_location',
+					calendar_schedule_content : 'eventDescription',
+					calendar_schedule_writer : 1
+				}
+				console.log(payload);
+			const jsonData = JSON.stringify(payload);
+
+			fetch('/create/event',{
+				method:'POST',
+			    body:jsonData
+			})
+			.then(response => response.json())
+			.then(data=>{
+				alert(data.res_msg);
+			}) */
+		</script>
+		<script src="https://code.jquery.com/jquery-3.7.1.js"
+			integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+			crossorigin="anonymous"></script>
+		<!-- Calendar init -->
+		<script src="/assets/js/pages/calendar.init.js"></script>
+	</th:block>
+</body>
+
+</html>

@@ -1,0 +1,195 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout}" data-sidebar="light">
+
+<th:block layout:fragment="pagetitle">
+	<!--page title-->
+	<div th:replace="partials/title-meta :: title-meta('회의실 예약')"></div>
+</th:block>
+
+<head>
+<!--Swiper slider css-->
+<link href="assets/libs/swiper/swiper-bundle.min.css" rel="stylesheet"
+	type="text/css" />
+<!-- 폰트 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+<style type="text/css">
+	* {font-family: "Noto Sans KR", sans-serif !important;} 
+</style>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<input type="hidden" id="csrf_token" th:value="${_csrf.token}"/>
+		<input type="hidden" id="_csrf_header" value="X-CSRF-Token"/>
+		<div
+			th:replace="partials/page-title :: page-title('회의실 예약','메인화면')"></div>
+
+		<div class="row">
+
+			<a onclick=""></a>
+
+			<div class="col-xxl-4 col-xl-6">
+				<div class="card">
+					<div class="card-header align-items-center d-flex">
+						<h4 class="card-title mb-0 flex-grow-1" style="font-family: 'Noto Sans KR', sans-serif;">회의실 리스트</h4>
+					</div>
+					<!-- end card header -->
+
+					<!-- card body -->
+					<div class="card-body">
+
+						<div class="live-preview"  data-simplebar style="max-height: 639.4px;" th:if="${!#lists.isEmpty(meetingRoom)}">
+							<div class="list-group">
+
+								<!-- <th:block th:each="meetingRoomDetail : ${meetingRoom}">
+
+								<a class='list-group-item list-group-item-action nav-link show'
+									id='custom-v-pills-home-tab' data-bs-toggle='pill'
+									th:href="#meetingRoomDetail+${meetingRoomDetail.meeting_room_no}" role='tab'
+									aria-controls="meetingRoomDetail" th:attr="aria-controls=meetingRoomDetail+${meetingRoomDetail.meeting_room_no}">
+									<div class="d-flex align-items-center">
+										<div class='flex-shrink-0'>
+											<div class='rounded' th:style=" 'width: 150px; height: 100px; background-image: url(/meetingRoomImg/'+${meetingRoomDetail.meeting_room_img}+'); background-repeat: no-repeat; background-size: cover; background-position: center'">
+											</div>
+										</div>
+										<div class='flex-grow-1 ms-3 mb-5'>
+											<p class='card-title mb-2' style="font-weight: bold;" th:text="${meetingRoomDetail.meeting_room_name}"></p>
+											<p class='mb-0' th:text="${meetingRoomDetail.meeting_room_place}"></p>
+										</div>
+									</div>
+								</a> 
+								</th:block> -->
+							</div>
+						</div>
+						<!-- end card-body -->
+					</div>
+					<!-- end card body -->
+				</div>
+				<!-- end card -->
+			</div>
+			<!-- end col -->
+
+			<div class="col-xxl-8">
+				<div class="card card-width-300 px-3 meetingRoom">
+					<div class='tab-pane fade active show' id='meetingRoomDetail1'
+						role='tabpanel' aria-labelledby='custom-v-pills-home-tab' th:if="${#lists.isEmpty(meetingRoom)}">
+						<div class='card-body'>
+							<div class='mx-n3'>
+								<div data-simplebar style="height: 640px;" class='px-3'>
+									<div class='row gx-lg-4'>
+										<div class='card-header align-items-center d-flex'>
+											<h4 class='card-title mb-0 flex-grow-1'> <span th:text="${meetingRoomDetail.meeting_room_name}"></span> 예약 가능한 회의실이 없습니다.</h4>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				<div class="tab-content text-muted mt-3 mt-lg-0">
+					<input type="hidden" th:value="${#lists.size(meetingRoom)}" id="size">
+					<div th:if="${!#lists.isEmpty(meetingRoom)}" class='tab-pane fade meetingRoomActive' th:each="meetingRoomDetail : ${meetingRoom}" id='meetingRoomDetail' th:attr="id=meetingRoomDetail+${meetingRoomDetail.meeting_room_no}"
+						role='tabpanel' aria-labelledby='custom-v-pills-home-tab'>
+						<div class='card-header align-items-center d-flex'>
+							<h4 class='card-title mb-0 flex-grow-1' th:text="${meetingRoomDetail.meeting_room_name}" style="font-family: 'Noto Sans KR', sans-serif;"></h4>
+						</div>
+						<div class='card-body'>
+							<div class='mx-n3'>
+								<div data-simplebar style="max-height: 640px;" class='px-3'>
+									<div class='row gx-lg-4'>
+										<div class='col-xl-12 mb-4'>
+											<div class='rounded' th:style=" 'width: 100%; height: 250px; background-image: url(/meetingRoomImg/'+${meetingRoomDetail.meeting_room_img}+'); background-repeat: no-repeat; background-size: cover; background-position: center; background-attachment: scroll;'"></div>
+											<!-- <img class='rounded' alt=''  width='100%' height="100px" th:src='@{${meetingRoomDetail.meeting_room_img}}'> -->
+										</div>
+										<div class='col-xl-12'>
+											<div class='mt-xl-0 mt-5'>
+												<div class="d-flex">
+													<div class='flex-grow-1'>
+														<h4 style="font-family: 'Noto Sans KR', sans-serif;" th:text="${meetingRoomDetail.meeting_room_name}">회의실A</h4>
+														<div class='hstack gap-3 flex-wrap mb-4'>
+															<div>
+																<a class='text-primary d-block' style="font-family: 'Noto Sans KR', sans-serif;" th:text="${meetingRoomDetail.meeting_room_place}"> 3층 301호 </a>
+															</div>
+															<div class='vr'></div>
+															<div class='text-muted' style="font-family: 'Noto Sans KR', sans-serif;">어매니티 : <span class='text-body fw-medium' th:text="${meetingRoomDetail.meeting_room_amenity}"> TV, 화이트 보드, 빔 프로젝터 </span>
+															</div>
+														</div>
+													</div>
+													<div class='flex-shrink-0'>
+														<div th:if="${empAuth} == 'ADMIN'">
+															<a th:href='@{/apps-meeting-room-modify/{no}(no=${meetingRoomDetail.meeting_room_no})}'
+																class='btn btn-light' data-bs-toggle='tooltip'
+																data-bs-placement='top' title='수정'>
+																<i class='ri-pencil-fill align-bottom' th:value="${meetingRoomDetail.meeting_room_no}"></i>
+															</a>
+															<button id="delete" onclick="deleteMeetingRoom(this)"
+																class='btn btn-light' data-bs-toggle='tooltip'
+																data-bs-placement='top' title='삭제' th:value="${meetingRoomDetail.meeting_room_no}">
+																<i class='bx bxs-trash align-center pt-1'></i>
+															</button>
+														</div>
+													</div>
+												</div>
+												<form id='meetingRoomForm'>
+													<input type="hidden" id="reserve_meeting_room_no" name="reserve_meeting_room_no" th:value="${meetingRoomDetail.meeting_room_no}">
+													<input type="hidden" id="empId" th:value="${empId}">
+													<input type="hidden" id="empAuth" th:value="${empAuth}">
+													<div class='row'>
+														<div class='col-lg-7 mb-4'>
+															<div class='mt-3'>
+															<input type="hidden" th:value="${nowDate.getYear}" id="nowYear">
+															<input type="hidden" th:value="${nowDate.getMonthValue}" id="nowMonth">
+															<input type="hidden" th:value="${nowDate.getDayOfMonth}" id="nowDay">
+																<input type='text' class='form-control datePicker' name="meeting_room_reserve_date" id="meeting_room_reserve_date"
+																onchange="reserveDateCheck(this);">
+															</div>
+														</div>
+														<div class='col-xl-5'>
+															<h5 class='fs-16 fw-bold' style="font-family: 'Noto Sans KR', sans-serif;">예약 시간</h5>
+																<div class='mb-3 mt-3'>
+																	<h5 class="fs-12 fw-bold text-muted" style="font-family: 'Noto Sans KR', sans-serif;">오전</h5>
+																	<th:block th:each="meetingRoomTimeDetail : ${meetingRoomTime}" th:if="${meetingRoomTimeDetail.meeting_room_ampm.equals('오전')}">
+																		<input type="checkbox" class='btn-check reserve_time' name="meeting_room_reserve_time_no" th:if="${meetingRoomTimeDetail.meeting_room_no == meetingRoomDetail.meeting_room_no}" id='btnradio' th:attr="id=btnradio+${meetingRoomTimeDetail.meeting_room_time_no}" 
+																		autocomplete='off' th:value="${meetingRoomTimeDetail.meeting_room_time_no}"> <label th:if="${meetingRoomTimeDetail.meeting_room_no == meetingRoomDetail.meeting_room_no}"
+																		class='btn btn-outline-primary' for='btnradio' th:attr="for=btnradio+${meetingRoomTimeDetail.meeting_room_time_no}"
+																		style='width: 120px'><span th:text="${meetingRoomTimeDetail.meeting_room_start_time}"></span> ~ <span th:text="${meetingRoomTimeDetail.meeting_room_end_time}"></span></label>
+																	</th:block>
+																	<h5 class="fs-12 fw-bold text-muted" style="font-family: 'Noto Sans KR', sans-serif;">오후</h5>
+																	<th:block th:each="meetingRoomTimeDetail : ${meetingRoomTime}" th:if="${meetingRoomTimeDetail.meeting_room_ampm.equals('오후')}">
+																		<input type="checkbox" class='btn-check reserve_time' name="meeting_room_reserve_time_no" th:if="${meetingRoomTimeDetail.meeting_room_no == meetingRoomDetail.meeting_room_no}" id='btnradio' th:attr="id=btnradio+${meetingRoomTimeDetail.meeting_room_time_no}" 
+																		autocomplete='off' th:value="${meetingRoomTimeDetail.meeting_room_time_no}"> <label th:if="${meetingRoomTimeDetail.meeting_room_no == meetingRoomDetail.meeting_room_no}"
+																		class='btn btn-outline-primary' for='btnradio' th:attr="for=btnradio+${meetingRoomTimeDetail.meeting_room_time_no}"
+																		style='width: 120px'><span th:text="${meetingRoomTimeDetail.meeting_room_start_time}"></span> ~ <span th:text="${meetingRoomTimeDetail.meeting_room_end_time}"></span></label>
+																	</th:block>
+																</div>
+															<button th:if="${empAuth} != 'ADMIN'" type="button" class='btn btn-primary' id="reserve_submit" th:value="${meetingRoomDetail.meeting_room_no}" onclick="reserve(this);" style="bottom: 100px; position: fixed; right: 40px; width: 430px; font-family: 'Noto Sans KR', sans-serif;">회의실 예약</button>
+														</div>
+													</div>
+												</form>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- end row-->
+						
+					</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<th:block layout:fragment="pagejs">
+		<!--Swiper slider js-->
+		<script src="/assets/libs/swiper/swiper-bundle.min.js"></script>
+
+		<!-- ecommerce product details init -->
+		<script src="/assets/js/pages/meeting-room.init.js"></script>
+	</th:block>
+</body>
+
+</html>

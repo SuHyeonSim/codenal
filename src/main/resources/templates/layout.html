@@ -1,0 +1,233 @@
+ <html lang="utf-8" data-layout="vertical" data-topbar="light" data-sidebar="light" data-sidebar-size="lg"
+	data-sidebar-image="none" data-preloader="disable" xmlns="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+	<th:block layout:fragment="pagetitle" />
+	<!-- Page CSS -->
+	<div th:replace="partials/head-css :: head-css"></div>
+	
+	<style type="text/css">
+		label {
+			color: black;
+		}
+		a {color: black;}
+	</style>
+</head>
+
+<body data-sidebar="light" data-layout-mode="light">
+	<div id="layout-wrapper">
+		<div th:replace="partials/topbar :: topbar"></div>
+
+		<div th:replace="partials/sidebar :: sidebar"></div>
+
+		<div class="main-content">
+			<div class="page-content">
+				<div class="container-fluid">
+
+					<section layout:fragment="content" th:remove="tag">
+
+					</section>
+				</div>
+			</div>
+			<div th:replace="partials/footer :: footer"></div>
+		</div>
+	</div>
+	
+	<div th:if="${page} == 'appchat'" th:remove="tag">
+		<div th:replace="partials/app-chat-userprofile-canvas :: offcanvas"></div>	
+	</div>
+	
+	<!-- TOAST UI 알림 컨테이너 -->
+ <div id="toast-container" aria-live="polite" aria-atomic="true" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+	
+	
+	<th:block layout:fragment="modal" />
+
+	<div th:replace="partials/customizer :: customizer"></div>
+	
+	<div th:replace="partials/vendor-scripts :: scripts"></div>
+
+	<th:block layout:fragment="pagejs" />
+	<!-- App js -->
+	<script th:src="@{/assets/js/app.js}"></script>
+	
+	
+	    <!-- WebSocket 연결 스크립트 -->
+    <script>
+        // WebSocket 연결 설정
+   const notificationSocketUrl = 'ws://localhost:8083/allnotification';
+
+   /* 페이지에서 알림 WebSocket 사용 여부를 확인하기 위한 전역 상태 */
+	// WebSocket이 없거나 닫힌 경우 연결 설정
+   if (!window.notificationSocket || window.notificationSocket.readyState === WebSocket.CLOSED) {
+   	window.notificationSocket = new WebSocket(notificationSocketUrl);
+       setUpNotificationWebSocketHandlers(window.notificationSocket);
+   } else if (window.notificationSocket.readyState === WebSocket.OPEN) {
+       console.log("알림 WebSocket이 이미 연결되어 있는 상태");
+   }
+	
+
+
+
+   /* WebSocket 핸들러 설정 함수 (알림) */
+   function setUpNotificationWebSocketHandlers(socket) {
+       socket.onopen = function(event) {
+           console.log("전역 알림 웹소켓 연결완료");
+       };
+       
+    // 초기 알림 리스트를 가져오기
+       fetch('/alarms/topbar')
+           .then(response => {
+               if (!response.ok) {
+                   throw new Error('Network response was not ok');
+               }
+               return response.text(); // HTML 형태로 응답
+           })
+           .then(data => {
+               const parser = new DOMParser();
+               const doc = parser.parseFromString(data, 'text/html');
+               const newAlarms = doc.querySelector('#all-noti-tab');
+
+               // 기존 알림 리스트 업데이트
+               const allNotiTab = document.querySelector('#all-noti-tab');
+               const notificationCount = document.getElementById('notification-count');
+               notificationCount.style.display = 'none';
+               if (newAlarms && newAlarms.querySelectorAll('.notification-item').length > 0) {
+            	   allNotiTab.innerHTML = `
+            	        <div class="tab-pane fade show active py-2 ps-2" id="all-noti-tab" role="tabpanel">
+            	            <div data-simplebar style="max-height: 300px;" class="pe-2" id="notificationAllList">
+            	                ${newAlarms.innerHTML}
+            	            </div>
+            	        </div>
+            	    `;
+
+                   // "알림이 없습니다." 메시지 제거
+                   const emptyElem = allNotiTab.querySelector('.empty-notification-elem');
+                   if (emptyElem) {
+                       emptyElem.remove();
+                   }
+               } else {
+                   allNotiTab.innerHTML = `
+                       <div class="empty-notification-elem">
+                           <div class="w-25 w-sm-50 pt-3 mx-auto">
+                               <img src="/assets/images/svg/bell.svg" class="img-fluid" alt="user-pic">
+                           </div>
+                           <div class="text-center pb-5 mt-2">
+                               <h5 class="fs-18 fw-semibold lh-base">알림이 없습니다.</h5>
+                           </div>
+                       </div>`;
+               }
+   });
+       
+
+       socket.onmessage = function(event) {
+           const resp = JSON.parse(event.data);
+           
+           const receivedRoomNo = resp.room_no; // 수신된 메시지의 room_no
+           
+           
+	        // approval 타입의 알림은 모든 페이지에서 보여주기
+	        if (resp.type === 'approval') {
+	        	console.log(resp);
+	            addNotification(resp.msg_content, resp.approval_url);
+	        } 
+			// 채팅 페이지가 아니거나 현재 접속한 채팅방 번호와 다를 때만 showToast 함수 호출
+			else if (!window.isChatPage || window.currentRoomNo !== receivedRoomNo) {
+				showToast(resp.msg_content, resp.sender_name, resp.send_date, resp.room_no);  // 받은 알림 메시지를 처리
+			}
+       };
+
+       socket.onclose = function(event) {
+           console.log("알림 웹소켓 연결 종료");
+       };
+   }
+
+  
+   /* 토스트 알림 함수 */
+   function showToast(msgContent, senderName, sendDate, roomNo) {
+	   const truncatedMsgContent = msgContent.length > 15 ? msgContent.substring(0, 15) + '...' : msgContent;
+      const toastHTML = `
+          <div class="toast fade" role="alert" aria-live="assertive" data-bs-autohide="true" aria-atomic="true" style="background-color: lightblue;">
+              <div class="toast-header" >
+                  <img src="/assets/images/main-logo.png" class="rounded me-2" alt="..." height="20">
+                  <span class="fw-semibold me-auto">채팅 알림</span>
+                  <small>방금</small>&nbsp;
+                  <small>${new Date(sendDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                  <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+              </div>
+              <div class="toast-body">
+                 ${senderName}: ${truncatedMsgContent}
+	                 <div style="text-align: right;">
+					    <a href="/chatList/${roomNo}"><button type="button" class="btn btn-primary btn-sm waves-effect waves-light"><i class="ri-mail-send-line"></i>&nbsp;이동</button></button></a>
+	    			</div>
+              </div>
+          </div>
+      `;
+
+      const toastContainer = document.getElementById('toast-container');
+      toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+
+      const toastElement = toastContainer.lastElementChild;
+      const bsToast = new bootstrap.Toast(toastElement);
+      bsToast.show();
+
+      toastElement.addEventListener('hidden.bs.toast', () => {
+          toastElement.remove();
+      });
+
+  }
+  </script>
+    
+   <script>
+       // 알림 추가 함수를 정의
+       function addNotification(notificationMessage, notificationUrl) {
+           const allNotiTab = document.getElementById('all-noti-tab');
+           const notificationCount = document.getElementById('notification-count');
+           notificationCount.style.display = 'block';
+           
+        	// 현재 시간을 포맷팅
+           const currentTimeStamp = Date.now();
+           const formattedTime = new Date(currentTimeStamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+           // 알림 아이템 HTML 생성
+           const notificationItem = `
+           <div class="text-reset notification-item d-block dropdown-item position-relative">
+               <div class="d-flex">
+                   <div class="avatar-xs me-3">
+                       <span class="avatar-title bg-soft-info text-info rounded-circle fs-16">
+                           <i class='bx bx-message-square-dots'></i>
+                       </span>
+                   </div>
+                   <div class="flex-1">
+                       <a class="stretched-link" href="${notificationUrl}">
+                           <h6 class="mt-0 mb-2 lh-base">
+                               <b>${notificationMessage}</b>
+                           </h6>
+                       </a>
+                       <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
+                           <i class="mdi mdi-clock-outline"></i><span>"${new Date().getTime()}"</span>
+                       </p>
+                   </div>
+               </div>
+           </div>
+           `;
+
+           // 알림 리스트 상단에 추가
+           allNotiTab.insertAdjacentHTML('beforeend', notificationItem);
+
+           // "알림이 없습니다." 메시지 제거
+           const emptyElem = allNotiTab.querySelector('.empty-notification-elem');
+           if (emptyElem) {
+               emptyElem.remove();
+           }
+       }
+
+       
+</script>
+
+
+    
+	
+</body>
+
+</html>

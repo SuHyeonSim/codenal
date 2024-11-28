@@ -1,0 +1,797 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout}" data-sidebar="light">
+
+<th:block layout:fragment="pagetitle">
+	<!--page title-->
+	<div
+		th:replace="~{partials/title-meta :: title-meta('Profile Settings')}"></div>
+</th:block>
+
+<head>
+
+<meta name="_csrf" th:content="${_csrf.token}" />
+<meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- 폰트 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+
+<style>
+* {font-family: "Noto Sans KR", sans-serif !important;} 
+/* 모달 관련 CSS 수정 */
+.modal-dialog {
+	margin: 0; /* 여백 제거 */
+	padding: 0; /* 패딩 제거 */
+}
+
+.modal-content {
+	margin: 0; /* 여백 제거 */
+	padding: 0; /* 패딩 제거 */
+}
+
+/* 캔버스 크기 조정 및 불필요한 여백 제거 */
+#signatureCanvas {
+	display: block;
+	width: 100%; /* 캔버스 크기를 모달에 맞게 */
+	height: 200px; /* 설정된 높이 유지 */
+	margin: 0;
+	padding: 0;
+	border: none; /* 불필요한 테두리 제거 */
+}
+/* 수정 가능한 필드 스타일 */
+.editable {
+	background-color: #f8f9fa; /* 연한 회색 */
+	border: 1px solid #ced4da;
+}
+/* 프로필 배경의 세로폭 간격 조정 및 배경색 설정 */
+/* 프로필 배경의 단색 진한 남색 배경 설정 */
+/* 기존의 그라데이션 효과를 없애고, 진한 남색으로 변경 */
+.profile-wid-bg.profile-setting-img {
+    background-color: #003366 !important; /* 진한 남색 배경 설정 */
+    background-image: none !important; /* 그라데이션 제거 */
+    height: 150px !important; /* 필요에 따라 세로폭 조정 가능 */
+}
+</style>
+
+</head>
+
+<body>
+
+	<div layout:fragment="content">
+		<div class="position-relative mx-n4 mt-n4">
+			<div class="profile-wid-bg profile-setting-img">
+				
+				
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-xxl-3">
+				<div class="card mt-n5">
+					<div class="card-body p-4">
+						<div class="text-center">
+							<form action="/mypage/updateProfile" method="post"
+								enctype="multipart/form-data">
+								<input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+								<div
+									class="profile-user position-relative d-inline-block mx-auto mb-4">
+									<!-- 프로필 이미지 동적 바인딩 -->
+									<img
+										th:src="${session.profileImage != null ? session.profileImage : '/assets/images/users/user-dummy-img.jpg'}"
+										class="rounded-circle avatar-xl img-thumbnail user-profile-image"
+										alt="user-profile-image" id="profileImage">
+									<div class="avatar-xs p-0 rounded-circle profile-photo-edit">
+										<input id="profile-img-file-input" type="file"
+											class="profile-img-file-input" name="profileImage" disabled>
+										<label for="profile-img-file-input"
+											class="profile-photo-edit avatar-xs"> <span
+											class="avatar-title rounded-circle bg-light text-body">
+												<i class="ri-camera-fill"></i>
+										</span>
+										</label>
+									</div>
+								</div>
+							</form>
+							<!-- 직원 정보 출력 (널 체크 추가) -->
+							<h5 class="fs-16 mb-1"
+								th:text="${employee != null ? employee.empName : '직원 이름 없음'}">직원
+								이름 표시</h5>
+							<p class="text-muted mb-0"
+								th:text="${employee != null ? employee.departments.deptName + ' / ' + employee.jobs.jobName : '직원 정보 없음'}">
+								팀/직급 정보 없음</p>
+						</div>
+					</div>
+				</div>
+				<!--end card-->
+			</div>
+			<!--end col-->
+			<div class="col-xxl-9">
+				<div class="card mt-xxl-n5">
+					<div class="card-header">
+						<ul
+							class="nav nav-tabs-custom rounded card-header-tabs border-bottom-0"
+							role="tablist">
+							<li class="nav-item"><a class="nav-link active"
+								data-bs-toggle="tab" href="#personalDetails" role="tab"> <i
+									class="fas fa-home"></i> 개인정보
+							</a></li>
+							<li class="nav-item"><a class="nav-link"
+								data-bs-toggle="tab" href="#changePassword" role="tab"> <i
+									class="far fa-user"></i> 비밀번호 변경
+							</a></li>
+						</ul>
+					</div>
+					<div class="card-body p-4">
+						<div class="tab-content">
+							<div class="tab-pane active" id="personalDetails" role="tabpanel">
+								<form action="/mypage" method="post">
+									<div class="row">
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label for="firstnameInput" class="form-label">이름</label> <input
+													type="text" class="form-control" id="firstnameInput"
+													name="empName"
+													th:value="${employee != null ? employee.empName : ''}"
+													readonly required>
+											</div>
+										</div>
+										<!--end col-->
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label for="empIdInput" class="form-label">사번</label> <input
+													type="text" class="form-control" id="empIdInput"
+													name="empId"
+													th:value="${employee != null ? employee.empId : ''}"
+													readonly required>
+											</div>
+										</div>
+										<!--end col-->
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label for="phonenumberInput" class="form-label">전화번호</label>
+												<input type="text" class="form-control"
+													id="phonenumberInput" name="empPhone"
+													th:value="${employee != null ? employee.empPhone : ''}"
+													readonly required>
+											</div>
+										</div>
+										<!--end col-->
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label for="ssnInput" class="form-label">주민등록번호</label> <input
+													type="text" class="form-control" id="ssnInput"
+													name="empSsn"
+													th:value="${employee != null ? employee.empSsn : ''}"
+													readonly>
+											</div>
+										</div>
+										<!--end col-->
+
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label for="addressInput" class="form-label">주소</label>
+												<div class="input-group">
+													<input type="text" class="form-control" id="addressInput"
+														name="empAddress"
+														th:value="${employee != null ? employee.empAddress : ''}"
+														readonly required>
+													<button type="button" class="btn btn-primary btn-sm"
+														onclick="openDaumPostcode()" disabled>주소 찾기</button>
+												</div>
+											</div>
+										</div>
+										<!--end col-->
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label for="detailedAddressInput" class="form-label">상세주소</label>
+												<input type="text" class="form-control"
+													id="detailedAddressInput" name="empAddressDetail"
+													th:value="${employee != null ? employee.empAddressDetail : ''}"
+													readonly required>
+											</div>
+										</div>
+										<!--end col-->
+										<div class="col-lg-4">
+											<div class="mb-3">
+												<label for="hireDateInput" class="form-label">입사일</label> <input
+													type="date" class="form-control" id="hireDateInput"
+													name="empHire"
+													th:value="${employee != null ? #temporals.format(employee.empHire, 'yyyy-MM-dd') : ''}"
+													readonly>
+											</div>
+										</div>
+										<!--end col-->
+										<div class="col-lg-4">
+											<label for="signImageInput" class="form-label">서명이미지</label>
+											<div class="input-group">
+												<input type="text" class="form-control" id="signImageInput"
+													th:value="${session.signatureImage != null ? session.signatureImage : '서명이미지 없음'}"
+													readonly>
+												<button type="button" class="btn btn-primary btn-sm"
+													data-bs-toggle="modal" data-bs-target="#flipModal" disabled>
+													등록/수정</button>
+
+											</div>
+										</div>
+										<!--end col-->
+										<div id="flipModal" class="modal fade flip" tabindex="-1"
+											aria-labelledby="flipModalLabel" aria-hidden="true">
+											<div class="modal-dialog modal-dialog-centered">
+												<div class="modal-content"> 
+													<div class="modal-header">
+														<h5 class="modal-title" id="flipModalLabel">서명 등록/수정</h5>
+														<button type="button" class="btn-close"
+															data-bs-dismiss="modal" aria-label="Close"></button>
+													</div>
+													<div class="modal-body">
+														<!-- 서명 캔버스 추가 -->
+														<canvas id="signatureCanvas" class="border"
+															style="width: 100%; height: 200px;"></canvas>
+														<input type="hidden" id="signatureImage"
+															name="signatureImage"
+															th:value="${session.signatureImage}">
+														<button type="button" class="btn btn-secondary mt-2"
+															onclick="clearCanvas()">지우기</button>
+
+													</div>
+													<div class="modal-footer">
+														<button type="button" class="btn btn-light"
+															data-bs-dismiss="modal">취소</button>
+														<button type="button" class="btn btn-primary"
+															data-bs-dismiss="modal" onclick="saveSignature()">
+															등록</button>
+													</div>
+												</div>
+											</div>
+										</div>
+
+										<div class="col-lg-12">
+											<div class="hstack gap-2 justify-content-end">
+												<div class="hstack gap-2 justify-content-end mt-3">
+													<button type="button" id="editSaveButton"
+														class="btn btn-primary" onclick="toggleEditSave()">수정</button>
+													<button type="button" id="cancelButton"
+														class="btn btn-secondary" onclick="cancelEdit()"
+														style="display: none;">이전</button>
+												</div>
+
+
+											</div>
+										</div>
+										<!--end col-->
+									</div>
+									<!--end row-->
+								</form>
+							</div>
+							<!--end tab-pane-->
+
+							<!-- 비밀번호 변경 탭 -->
+							<div class="tab-pane" id="changePassword" role="tabpanel">
+								<form id="passwordChangeForm" action="/mypage/updatePassword"
+									method="post">
+									<input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+									<div class="row g-3">
+										<div class="col-lg-7">
+											<div>
+												<label for="oldpasswordInput" class="form-label">기존
+													비밀번호</label> <input type="password" class="form-control"
+													id="oldpasswordInput" name="oldPassword"
+													placeholder="기존 비밀번호를 입력하세요. " required>
+											</div>
+										</div>
+										<div class="col-lg-7">
+											<div>
+												<label for="newpasswordInput" class="form-label">새
+													비밀번호</label> <input type="password" class="form-control"
+													id="newpasswordInput" name="newPassword"
+													placeholder="새 비밀번호를 입력하세요. " required>
+											</div>
+										</div>
+										<div class="col-lg-7">
+											<div>
+												<label for="confirmpasswordInput" class="form-label">비밀번호
+													확인</label> <input type="password" class="form-control"
+													id="confirmpasswordInput" name="confirmPassword"
+													placeholder="비밀번호를 다시 입력해주세요. " required>
+											</div>
+										</div>
+										<div class="col-lg-7">
+											<div class="text-end">
+												<div id="passwordChangeMessage" class="mt-2"></div>
+												<button type="submit" class="btn btn-success">비밀번호
+													변경</button>
+											</div>
+										</div>
+									</div>
+								</form>
+								<div class="mt-3">
+									<p class="text-muted">
+										비밀번호: 7~15자리의 대문자, 소문자, 숫자, 특수문자 2종류 이상 조합하여 사용하세요.<br>
+										동일한 숫자 또는 문자를 3번 연속 사용할 수 없습니다.
+									</p>
+								</div>
+							</div>
+							<!--end tab-pane-->
+
+						</div>
+					</div>
+				</div>
+			</div>
+			<!--end col-->
+		</div>
+		<!--end row-->
+
+	</div>
+
+	<th:block layout:fragment="pagejs">
+
+		<!-- profile-setting init js -->
+		<script src="/assets/js/pages/profile-setting.init.js"></script>
+
+		<script src="https://cdn.jsdelivr.net/npm/toastify-js" async></script>
+		<script>
+		
+		
+		const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+		const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+		
+		
+		
+		   document.addEventListener('DOMContentLoaded', function() {
+		        // 기존 DOMContentLoaded 이벤트 리스너 생략
+
+		        // 프로필 이미지 업데이트 성공 시 localStorage에 저장
+		        function updateProfileImage() {
+		            const profileImageInput = document.getElementById('profile-img-file-input');
+		            if (profileImageInput.files.length > 0) {
+		                const formData = new FormData();
+		                formData.append('profileImage', profileImageInput.files[0]);
+
+		                fetch('/mypage/updateProfile', {
+		                    method: 'POST',
+		                    body: formData,
+		                    headers: { [csrfHeaderName]: csrfToken }
+		                })
+		                .then(response => response.json())
+		                .then(data => {
+		                	  if (data.success) {
+		                          document.getElementById('profileImage').src = data.imageUrl;
+		                          Swal.fire({
+		                              icon: 'success',
+		                              title: '성공',
+		                              text: '프로필 이미지가 성공적으로 저장되었습니다.'
+		                          });
+
+		                        // localStorage에 업데이트 이벤트 기록 (타임스탬프 추가하여 캐싱 문제 방지)
+		                        const updatedImageUrl = data.imageUrl + '?t=' + new Date().getTime();
+		                        localStorage.setItem('profileImageUpdated', updatedImageUrl);
+		                    } else {
+		                    	 Swal.fire({
+		                             icon: 'error',
+		                             title: '실패',
+		                             text: '프로필 이미지 저장에 실패했습니다: ' + data.error
+		                         });
+		                    }
+		                })
+		                .catch(error => {
+		                    console.error('Error:', error);
+		                });
+		            }
+		        }
+
+		        // 프로필 이미지 입력 필드에 이벤트 리스너 추가
+		        const profileImageInputField = document.getElementById('profile-img-file-input');
+		        profileImageInputField.addEventListener('change', updateProfileImage);
+		    });
+		
+		const canvas = document.getElementById('signatureCanvas');
+		
+		const ctx = canvas.getContext('2d');
+		let drawing = false;
+
+		// 마우스 클릭 시 드로잉 시작
+		canvas.addEventListener('mousedown', (event) => {
+		    drawing = true;
+		    const { x, y } = getCanvasCoordinates(event);	
+		    ctx.moveTo(x, y);  // 클릭한 즉시 선이 그려지도록 시작 좌표 설정
+		});
+
+
+		// 마우스 클릭 해제 시 드로잉 종료
+		canvas.addEventListener('mouseup', () => {
+		    drawing = false;
+		    ctx.beginPath();  // 새로운 경로 시작
+		});
+
+		// 마우스 이동 시 그림 그리기
+		canvas.addEventListener('mousemove', (event) => {
+		    if (!drawing) return;
+		    const { x, y } = getCanvasCoordinates(event);
+		    ctx.lineTo(x, y);
+		    ctx.stroke();
+		    ctx.beginPath();
+		    ctx.moveTo(x, y);
+		});
+
+		// 좌표 계산 함수 (스케일링 및 경계선 보정)
+		function getCanvasCoordinates(event) {
+		    const rect = canvas.getBoundingClientRect();
+		    const bw = 5;  // 경계선 두께 (필요한 경우 수정 가능)
+
+		    const x = (event.clientX - rect.left - bw) * (canvas.width / (rect.width - bw * 2));
+		    const y = (event.clientY - rect.top - bw) * (canvas.height / (rect.height - bw * 2));
+
+		    return { x, y };
+		}
+
+
+		// 캔버스 지우기
+		function clearCanvas() {
+		    ctx.clearRect(0, 0, canvas.width, canvas.height);
+		}
+
+		// 서명을 저장하는 함수 (Base64 인코딩)
+		function saveSignature() {
+			
+			 let dataURL = canvas.toDataURL('image/png'); 
+    
+    if (isCanvasEmpty()) {
+        dataURL = '';  // 빈 값으로 처리
+    }
+    
+    const formData = new FormData();
+    formData.append('signatureImage', dataURL);  // 서명 이미지 Base64
+    formData.append('empName', document.getElementById('firstnameInput').value);
+    formData.append('empPhone', document.getElementById('phonenumberInput').value);
+    formData.append('empAddress', document.getElementById('addressInput').value);
+    formData.append('empAddressDetail', document.getElementById('detailedAddressInput').value);
+
+    fetch('/mypage/updateProfile', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            [header]: token
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (dataURL === '') {
+                document.getElementById('signatureImage').value = '서명이미지 없음';
+                // 캔버스를 지운 상태로 업데이트
+                clearCanvas();
+            } else {
+                document.getElementById('signatureImage').value = data.filePath;
+            }
+            Swal.fire({
+                icon: 'success',
+                title: '성공',
+                text: '서명이 성공적으로 저장되었습니다.'
+            });
+        } else {
+        	 Swal.fire({
+                 icon: 'error',
+                 title: '실패',
+                 text: '서명 저장에 실패했습니다: ' + data.error
+             });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+		// 캔버스가 비어있는지 확인하는 함수
+		function isCanvasEmpty() {
+		    const empty = document.createElement('canvas');
+		    empty.width = canvas.width;
+		    empty.height = canvas.height;
+		    return canvas.toDataURL() === empty.toDataURL();
+		}
+		document.getElementById('flipModal').addEventListener('shown.bs.modal', function () {
+		    const savedSignature = document.getElementById('signatureImage').value;  // Base64로 저장된 서명 값
+		    if (savedSignature && savedSignature.startsWith('data:image')) {
+		        const image = new Image();
+		        image.src = savedSignature;  // Base64 이미지를 <img> 태그에 넣어 표시
+		        image.onload = function () {
+		            ctx.clearRect(0, 0, canvas.width, canvas.height);  // 캔버스 초기화
+		            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);  // 저장된 서명을 캔버스에 표시
+		        };
+		    } else {
+		        clearCanvas();  // 저장된 서명이 없으면 빈 캔버스를 표시
+		    }
+		});
+		window.addEventListener('load', function() {
+		    const savedSignature = document.getElementById('signatureImage').value;  // Base64로 저장된 서명 데이터
+		    if (savedSignature && savedSignature.startsWith('data:image')) {
+		        const image = new Image();
+		        image.src = savedSignature;  // Base64 이미지를 불러옴
+		        image.onload = function () {
+		            ctx.clearRect(0, 0, canvas.width, canvas.height);  // 캔버스 초기화
+		            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);  // 캔버스에 저장된 서명 이미지 그리기
+		        };
+		    } else {
+		        clearCanvas();  // 서명이 없으면 빈 캔버스를 유지
+		    }
+		});
+		
+		let originalValues = {};
+		
+		function toggleEditSave() {
+		    const editableFields = [
+		        document.getElementById('firstnameInput'),
+		        document.getElementById('phonenumberInput'),
+		        document.getElementById('addressInput'),
+		        document.getElementById('detailedAddressInput'),
+		        document.getElementById('profile-img-file-input'),     // 프로필 이미지 입력 필드
+		        document.querySelector('[data-bs-target="#flipModal"]'),
+		        document.querySelector('button[onclick="openDaumPostcode()"]')
+		    ];
+
+		    const editSaveButton = document.getElementById('editSaveButton');
+		    const cancelButton = document.getElementById('cancelButton');
+
+		    if (editSaveButton.innerText === '수정') {
+		        // 수정 가능하도록 설정
+		        editableFields.forEach(field => {
+		            field.removeAttribute('readonly');
+		            field.classList.add('editable'); // 연한 회색 배경 적용
+		            if (field.tagName === 'INPUT' && field.type === 'file') {
+		                field.removeAttribute('disabled'); // 파일 입력 필드 활성화
+		            }
+		            if (field.getAttribute('data-bs-target') === '#flipModal') {
+		                field.removeAttribute('disabled'); // 서명 등록/수정 버튼 활성화
+		            }
+		            
+		            if (field.tagName === 'BUTTON') {
+		                field.removeAttribute('disabled'); // 주소 찾기 버튼 활성화
+		            }
+		        });
+		        
+		        originalValues = {
+		                firstname: document.getElementById('firstnameInput').value,
+		                phonenumber: document.getElementById('phonenumberInput').value,
+		                address: document.getElementById('addressInput').value,
+		                detailedAddress: document.getElementById('detailedAddressInput').value,
+		            };
+		        
+		        editSaveButton.innerText = '저장';
+		        cancelButton.style.display = 'inline';
+		    } else {
+		        // 서버로 데이터 전송 (이때 fetch를 사용해서 전송합니다.)
+		        const formData = new FormData();
+		        formData.append('empName', document.getElementById('firstnameInput').value);
+		        formData.append('empPhone', document.getElementById('phonenumberInput').value);
+		        formData.append('empAddress', document.getElementById('addressInput').value);
+		        formData.append('empAddressDetail', document.getElementById('detailedAddressInput').value);
+		        
+		        const profileImageInput = document.getElementById('profile-img-file-input');
+		        if (profileImageInput.files.length > 0) {
+		            formData.append('profileImage', profileImageInput.files[0]);  // 프로필 이미지
+		        }
+
+		        const signatureImage = canvas.toDataURL('image/png');
+		        formData.append('signatureImage', signatureImage);  // 서명 이미지 Base64
+
+		        fetch('/mypage/updateProfile', {
+		            method: 'POST',
+		            body: formData,
+		            headers: {
+		                [header]: token
+		            }
+		        })
+		        .then(response => response.json())
+		        .then(data => {
+		            if (data.success) {
+		            	  Swal.fire({
+		                        icon: 'success',
+		                        title: '성공',
+		                        text: '저장되었습니다.'
+		                    });
+		            } else {
+		            	Swal.fire({
+	                        icon: 'error',
+	                        title: '실패',
+	                        text: '저장에 실패했습니다.'
+	                    });
+		            }
+		        })
+		        .catch(error => {
+		            console.error('Error:', error);
+		        });
+
+		     // 필드를 다시 읽기 전용으로 설정
+                 editableFields.forEach(field => {
+            field.setAttribute('readonly', true);
+            field.classList.remove('editable'); // 연한 회색 제거
+            if (field.tagName === 'INPUT' && field.type === 'file') {
+                field.setAttribute('disabled', true); // 파일 입력 필드 비활성화
+            }
+            if (field.getAttribute('data-bs-target') === '#flipModal') {
+                field.setAttribute('disabled', true); // 서명 등록/수정 버튼 비활성화
+                
+                if (field.tagName === 'BUTTON') {
+                    field.setAttribute('disabled', true); // 주소 찾기 버튼 비활성화
+                }
+            }
+        });
+
+		        // 버튼을 '수정'으로 변경
+		        editSaveButton.innerText = '수정';
+		        cancelButton.style.display = 'none'; 
+		    }
+		}
+		
+		function cancelEdit() {
+		    // 필드 내용을 원래 값으로 복원
+		    document.getElementById('firstnameInput').value = originalValues.firstname;
+		    document.getElementById('phonenumberInput').value = originalValues.phonenumber;
+		    document.getElementById('addressInput').value = originalValues.address;
+		    document.getElementById('detailedAddressInput').value = originalValues.detailedAddress;
+		    
+
+		    // 필드들을 다시 읽기 전용으로 변경
+		    const editableFields = [
+		        document.getElementById('firstnameInput'),
+		        document.getElementById('phonenumberInput'),
+		        document.getElementById('addressInput'),
+		        document.getElementById('detailedAddressInput'),
+		        document.getElementById('profile-img-file-input'),
+		        document.querySelector('[data-bs-target="#flipModal"]') ,
+		         document.querySelector('button[onclick="openDaumPostcode()"]')
+		    ];
+
+		    editableFields.forEach(field => {
+		        field.setAttribute('readonly', true);
+		        field.classList.remove('editable');
+		        if (field.tagName === 'INPUT' && field.type === 'file') {
+		            field.setAttribute('disabled', true);
+		        }
+		        if (field.getAttribute('data-bs-target') === '#flipModal') {
+		            field.setAttribute('disabled', true);
+		        }
+		        if (field.tagName === 'BUTTON') {
+                    field.setAttribute('disabled', true); 
+                }
+		    });
+
+		    // 버튼을 '수정'으로 변경
+		    document.getElementById('editSaveButton').innerText = '수정';
+		    document.getElementById('cancelButton').style.display = 'none'; // 취소 버튼 숨기기
+		}
+		
+		
+		// 비밀번호 변경  부분  ------------------------------------------
+		document.getElementById('passwordChangeForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const oldPassword = document.getElementById('oldpasswordInput').value;
+    const newPassword = document.getElementById('newpasswordInput').value;
+    const confirmPassword = document.getElementById('confirmpasswordInput').value;
+    
+    const messageDiv = document.getElementById('passwordChangeMessage');
+    messageDiv.innerText = ''; // 기존 메시지 초기화
+    messageDiv.classList.remove('text-success', 'text-danger');
+
+    // 새 비밀번호와 확인 비밀번호가 일치하는지 클라이언트에서 먼저 확인
+     if (newPassword !== confirmPassword) {
+        messageDiv.innerText = "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.";
+        messageDiv.classList.add('text-danger');
+        return;
+    }
+
+     // 2. 비밀번호 유효성 검증
+     const validationError = validatePassword(newPassword);
+     if (validationError) {
+         messageDiv.innerText = validationError;
+         messageDiv.classList.add('text-danger');
+         return;
+     }
+    const formData = new FormData();
+    formData.append('oldPassword', oldPassword);
+    formData.append('newPassword', newPassword);
+    formData.append('confirmPassword', confirmPassword);
+
+    fetch('/mypage/updatePassword', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            [header]: token // CSRF 토큰을 함께 보냄
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageDiv.innerText = '비밀번호가 성공적으로 변경되었습니다.';
+            messageDiv.classList.add('text-success');
+            // 비밀번호 변경 성공 시 폼 초기화 또는 추가 작업 수행
+            document.getElementById('passwordChangeForm').reset();
+        } else {
+            messageDiv.innerText = '비밀번호 변경에 실패했습니다: ' + data.error;
+            messageDiv.classList.add('text-danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        messageDiv.innerText = '서버 오류가 발생했습니다.';
+        messageDiv.classList.add('text-danger');
+    });
+});
+		
+		function validatePassword(password) {
+		    if (!password) {
+		        return "비밀번호는 필수 입력 사항입니다.";
+		    }
+
+		    // 1. 길이 확인
+		    if (password.length < 7 || password.length > 15) {
+		        return "비밀번호는 7~15자이어야 합니다.";
+		    }
+
+		    // 2. 문자 종류 확인
+		    const upperCasePattern = /[A-Z]/;
+		    const lowerCasePattern = /[a-z]/;
+		    const digitPattern = /[0-9]/;
+		    const specialCharPattern = /[!@#$%^&*(),.?":{}|<>]/;
+
+		    let typesCount = 0;
+		    if (upperCasePattern.test(password)) typesCount++;
+		    if (lowerCasePattern.test(password)) typesCount++;
+		    if (digitPattern.test(password)) typesCount++;
+		    if (specialCharPattern.test(password)) typesCount++;
+
+		    if (typesCount < 2) {
+		        return "비밀번호는 대문자, 소문자, 숫자, 특수문자 중 2가지 이상을 조합해야 합니다.";
+		    }
+
+		    // 3. 동일한 문자 또는 숫자 3번 연속 사용 금지
+		    const consecutivePattern = /(.)\1\1/;
+		    if (consecutivePattern.test(password)) {
+		        return "동일한 문자 또는 숫자를 3번 연속 사용할 수 없습니다.";
+		    }
+
+		    return null; // 유효한 비밀번호
+		}
+		
+	// 카카오 주소 api  부분 
+		  function openDaumPostcode() {
+		        new daum.Postcode({
+		            oncomplete: function(data) {
+		                // 검색 결과에서 필요한 주소 정보만 추출
+		                let fullAddr = ''; // 최종 주소 변수
+		                let extraAddr = ''; // 참고 항목 변수
+
+		                if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+		                    fullAddr = data.roadAddress;
+		                } else { // 사용자가 지번 주소를 선택했을 경우(J)
+		                    fullAddr = data.jibunAddress;
+		                }
+
+		                // 사용자가 선택한 주소가 도로명 타입일 경우, 법정동이 있을 경우 추가해줌
+		                if (data.userSelectedType === 'R') {
+		                    if (data.bname !== '') {
+		                        extraAddr += data.bname;
+		                    }
+		                    if (data.buildingName !== '') {
+		                        extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+		                    }
+		                    fullAddr += (extraAddr !== '' ? ' (' + extraAddr + ')' : '');
+		                }
+
+		                // 우편번호와 주소 정보를 해당 필드에 넣음
+		                document.getElementById('addressInput').value = fullAddr;
+		                // 상세주소 입력란으로 포커스를 이동
+		                document.getElementById('detailedAddressInput').focus();
+		            }
+		        }).open();
+		    }
+		
+		</script>
+		<script
+			src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+	</th:block>
+</body>
+
+</html>

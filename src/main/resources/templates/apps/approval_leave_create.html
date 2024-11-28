@@ -1,0 +1,484 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <!-- Meta and Bootstrap CSS -->
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>전자결재 등록(휴가신청서)</title>
+    <!-- Bootstrap CSS -->
+    <th:block layout:fragment="pagetitle" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Dropzone CSS -->
+    <link href="/assets/libs/dropzone/dropzone.css" rel="stylesheet" type="text/css" />
+    <!-- 토슽 api -->
+    <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css"/>
+    
+    <!-- 폰트 -->
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+	
+    <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+    <style>
+		* {font-family: "Noto Sans KR", sans-serif !important;} 
+        #modal {
+            position: fixed;
+            display: none;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background-color: white;
+            border: 1px solid #b9b9b9;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .modal-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            height: calc(100% - 60px); /* 버튼 영역을 제외한 공간 */
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        .modal-item {
+            border: 1px solid #b9b9b9;
+            width: 20px;
+            height: 20px;
+            display: contents;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .modal-item.selected {
+            color: cornflowerblue;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            border-top: 1px solid #b9b9b9;
+        }
+        .modal-item.disabled {
+            color: #b9b9b9;
+            cursor: not-allowed;
+        }
+       	select, input[type=date] {
+			border:1px solid #d3d3d3; border-radius:4px; height: 35px;
+		}
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div th:replace="partials/page-title :: page-title('전자결재 작성', '전자결재')"></div>
+        <div class="row">
+            <div class="col-lg-12">
+				<div class="card">
+					<div class="card-body">
+						<form id="approvalForm">
+							<div class='row ml-3 mr-3 mt-3'>
+								<div class="col-lg-5">
+									<input type="hidden" id="csrf_token" th:value="${_csrf.token}" />
+									<div class="mb-3">
+										<label class="form-label" for="project-title-input">제목</label>
+										<input type="text" class="form-control"
+											id="project-title-input" placeholder="제목을 입력하세요"
+											name="approval_title">
+									</div>
+									<div class="mb-3">
+										<label class="form-label" for="project-author-input">기안자</label>
+										<input type="text" class="form-control"
+											id="project-author-input" readonly
+											th:value="${#authentication.name}"
+											name="emp_id">
+									</div>
+									<div class="mb-3">
+										<label class="form-label" for="project-date-input">기안일</label>
+										<input type="text" class="form-control"
+											id="project-date-input" th:value="${ldt}" readonly
+											name="approval_reg_date">
+									</div>
+									<div class="mb-3">
+										<label class="form-label" for="project-thumbnail-img">파일첨부</label>
+										<input class="form-control" id="project-thumbnail-img"
+											name="file" type="file"
+											accept="image/png, image/gif, image/jpeg"
+											>
+									</div>
+									<div class="mb-3">
+										<label class="form-label" for="references">수신참조자</label><br>
+										<input id="references" type="text"
+											style="width: 100%; height: 35px; border: 1px solid #d3d3d3; border-radius: 4px;"
+											class="selectedName3">
+									</div>
+
+
+									<!-- 양식 선택 -->
+									<div class="mb-3">
+										<label class="form-label" for="project-thumbnail-img">양식</label><br>
+										<!-- 근태신청서의 경우 -->
+										<div th:if="${no == 1}">
+											<select class="form-control" id="category-select"
+												style="width: 200px;" name="form_code"
+												onchange="updateEditorContent()">
+												<option>-- 선택하세요 --</option>
+												<option th:each="cate : ${cateList}"
+													th:text="${cate.form_name}" id="cateList"
+													th:value="${cate.form_code}"
+													th:data-content="${cate.form_content}"></option>
+											</select>
+											<div
+												style="margin-top: -30px; margin-left: 230px; color: #b9b9b9">내
+												잔여연차 :</div>
+											<div style="margin-top: 30px; margin-bottom: 10px;">날짜</div>
+											<div id="dateContent">
+												<input type="date" style="width: 200px;" id="startDate">
+												<select style="margin-left: 10px; width: 150px;"
+													name="time_period">
+													<option>오전</option>
+													<option>오후</option>
+												</select>
+											</div>
+										</div>
+
+									</div>
+								</div>
+								
+								<div class="col-lg-5 ms-auto">
+									<div>
+										<!-- 합의자 결재자 선택 -->
+										<label>합의자</label>
+										<table
+											style="border-collapse: collapse; border-bottom: 1px solid #d3d3d3; margin-bottom: -1px; width: 100%;">
+											<tr>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 130px; text-align: center;"></td>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 130px; text-align: center;">
+													<input type="button" value="선택"
+													style="background-color: white; border: white;"
+													id="button_modal1">
+												</td>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 130px; text-align: center;"></td>
+											</tr>
+										</table>
+										<table style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+											<tr>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 30px; text-align: center;"
+													class="selectedName"></td>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 30px; text-align: center;"
+													class="selectedName"></td>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 30px; text-align: center;"
+													class="selectedName"></td>
+											</tr>
+										</table>
+									</div>
+									<div class="mt-3"  style="margin: 0">
+										<label>결재자</label>
+										<table
+											style="border-collapse: collapse; border-bottom: 1px solid #d3d3d3; margin-bottom: -1px; width: 100%;">
+											<tr>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 130px; text-align: center;"></td>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 130px; text-align: center;">
+													<div style="display: none" class="modal2">
+														<label>직원 선택</label>
+													</div> <input type="button" value="선택"
+													style="background-color: white; border: white;"
+													id="button_modal2">
+												</td>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 130px; text-align: center;"></td>
+											</tr>
+										</table>
+										<table style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+											<tr>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 30px; text-align: center;"
+													class="selectedName2"></td>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 30px; text-align: center;"
+													class="selectedName2"></td>
+												<td
+													style="border: 1px solid #d3d3d3; width: 180px; height: 30px; text-align: center;"
+													class="selectedName2"></td>
+											</tr>
+										</table>
+									</div>
+								</div>
+								<!-- 토스트 api -->
+								<div class="col-lg-12">
+									<label>내용</label>
+									<div id="approval_edit"></div>
+								</div>
+								<!-- 버튼 -->
+								<div class="text-end mb-4 mt-3">
+									<button type="submit" class="btn btn-secondary w-sm">올리기</button>
+									<button type="submit" class="btn btn-danger w-sm"
+										onclick="history.back()">취소</button>
+								</div>
+
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+            <!-- 모달 창 -->
+		    <div id="modal">
+		        <div style="text-align: center;">결재자 선택</div>
+		        <div class="modal-content"> <!-- 이건 불러오는 값 ! 미리 내가 설정해놓은 것  -->
+		            <div class="modal-item">이과장</div>
+		            <div class="modal-item">박과장</div>
+		            <div class="modal-item">김과장</div>
+		            <div class="modal-item">최과장</div>
+		            <!-- 추가적인 사람들 -->
+		        </div>
+		        <div class="modal-footer">
+		            <button id="selectButton" style="background-color: cadetblue; border: 0px; border-radius: 30px; ">선택</button>
+		            <button id="closeButton" style="background-color: red; border: 0px; border-radius: 30px;">닫기</button>
+		        </div>
+		    </div>
+        </div>
+        
+        <!-- 날짜 생성 스크립트 설정 -->
+        <script>
+            
+                const select = document.getElementById('category-select');
+                const content = document.getElementById('dateContent');
+            
+                // select 값이 변경될 때마다 실행되는 이벤트 리스너
+                select.addEventListener('change', function() {
+                    const selectedValue = select.value;
+                    if (selectedValue == '1') {
+                        content.innerHTML = '<input type="date" style="width:200px;" id="startDate" name="start_date"> -' +
+                                            '<select style="margin-left:10px; width:150px;"><option>선택하세요</option><option>오전</option><option>오후</option></select>';
+                    } else {
+                        content.innerHTML = '<input type="date" style="width:200px;" id="startDate" name="start_date"> - ' +
+                                            '<input type="date" style="width:200px;" id="endDate" name="end_date">';
+                    }
+
+                    // 새롭게 생성된 요소를 가져와서 이벤트 리스너 추가
+                    const start = document.getElementById('startDate');
+                    const end = document.getElementById('endDate');
+                    
+                    if (end) {
+                        end.addEventListener('change', function() {
+                            if (start.value > end.value) {
+                                alert('종료일이 시작일보다 빠릅니다.');
+                                end.value = ''; 
+                            }
+                        });
+                    }
+                });
+            
+        </script>
+        
+        
+	    <script> /* 토스트 api 설정 */
+		      const contentEditor = new toastui.Editor({
+		      el: document.querySelector('#approval_edit'),
+		      width: '100%',
+		      height: '500px',
+		      initialEditType: 'wysiwyg',
+		      previewStyle: 'vertical',
+		      hideModeSwitch: true
+    		});
+	    
+		      function updateEditorContent() {
+			        const selectElement = document.getElementById('category-select');
+			        const selectedOption = selectElement.options[selectElement.selectedIndex];
+			        const formContent = selectedOption.getAttribute('data-content');
+
+			        // 토스트 에디터 내용 저장한 값 불러옴
+			        contentEditor.setHTML(formContent);
+			    }
+
+			    // 페이지 로드 시 기본 내용 설정
+			    document.addEventListener('DOMContentLoaded', () => {
+			        updateEditorContent();
+			    });
+			
+			    const form = document.getElementById("approvalForm");
+			    form.addEventListener('submit', (e) => {
+			        e.preventDefault();
+			        const payload = new FormData(form);
+			        const csrfToken = document.getElementById('csrf_token').value;
+			        /* 토스트 api 안에 값 저장 */
+					const content = contentEditor.getHTML();
+					payload.append("approval_content",content);
+					
+			        fetch('/approval_leave', {
+			            method: 'POST',
+			            headers: {
+			                'X-CSRF-TOKEN': csrfToken
+			            },
+			            body: payload 
+			        })
+			        .then(response => response.json())
+			        .then(data => {
+			            console.log(data.res_msg);
+			            if (data.res_code === '200') {
+			                Swal.fire({
+			                    icon: 'success',
+			                    title: "성공",
+			                    text: data.reg_msg
+			                }).then(() => {
+			                    location.href = "/approval/list?num=0";
+			                });
+			            } else {
+			                Swal.fire({
+			                    icon: 'error',
+			                    title: '실패',
+			                    text: data.reg_msg
+			                });
+			            }
+			        })
+			    });
+    	</script>
+    	
+    	<!-- 모달 관련 script -->
+    	<script>
+	        const modal = document.querySelector('#modal');
+	        const button = document.querySelector('#button_modal1');
+	        const button2 = document.querySelector('#button_modal2');
+	        const button3 = document.querySelector('#references');
+	        const closeButton = document.querySelector('#closeButton');
+	        const selectButton = document.querySelector('#selectButton');
+	        const selectedNames = document.querySelectorAll('.selectedName');
+	        const selectedNames2 = document.querySelectorAll('.selectedName2');
+	        const selectedNames3 = document.querySelector('#references');
+	        let selectedPeople = []; //합의자
+	        let selectedPeople2 = []; //결재자
+	        let selectedPeople3 = []; //수신 참조자
+
+	        function updateModal() {
+	            const group = modal.dataset.group;
+	            const modalItems = document.querySelectorAll('.modal-item');
+	
+	            modalItems.forEach(item => {
+	                const person = item.textContent.trim();
+	                let isDisabled = false;
+	
+	                if (group === 'approver') {
+	                    // 결재자 모달에서는 선택된 합의자만 비활성화
+	                    isDisabled = selectedPeople.includes(person) || selectedPeople3.includes(person);
+	                } else if (group === 'agreement') {
+	                    // 합의자 모달에서는 선택된 결재자 및 수신참조자 비활성화
+	                    isDisabled = selectedPeople2.includes(person) || selectedPeople3.includes(person);
+	                } else if (group === 'references') {
+	                    // 수신참조자 모달에서는 선택된 결재자 및 합의자 비활성화
+	                    isDisabled = selectedPeople.includes(person) || selectedPeople2.includes(person);
+	                }
+	
+	                item.classList.toggle('disabled', isDisabled);
+	            });
+	        }
+	        
+       		// 합의자 모달 열기
+	        button.addEventListener('click', () => {
+	            modal.style.display = 'block';
+	            modal.dataset.group = 'agreement';
+	            updateModal();
+	        });
+
+	        // 결재자 모달 열기
+	        button2.addEventListener('click', () => {
+	            modal.style.display = 'block';
+	            modal.dataset.group = 'approver';
+	            updateModal();
+	        });
+
+	        // 수신참조자 모달 열기
+	        button3.addEventListener('click', () => {
+	            modal.style.display = 'block';
+	            modal.dataset.group = 'references';
+	            updateModal();
+	        });
+
+
+	        // 모달 닫기
+	        closeButton.addEventListener('click', () => {
+	            modal.style.display = 'none';
+	        });
+
+	        // 선택된 사람 저장
+	        document.querySelectorAll('.modal-item').forEach(item => {
+	            item.addEventListener('click', () => {
+	                const person = item.textContent.trim();
+	                const group = modal.dataset.group;
+	
+	                if (item.classList.contains('disabled')) {
+	                    return;  // disabled 상태이면 아무 동작도 하지 않음
+	                }
+	
+	                if(group === 'approver'){
+	                    if (selectedPeople2.includes(person)) {
+	                        // 이미 선택된 사람을 해제
+	                        selectedPeople2 = selectedPeople2.filter(p => p !== person);
+	                        item.classList.remove('selected');
+	                    } else if (selectedPeople2.length < 3) {
+	                        // 선택된 사람이 3명 이하인 경우에만 추가
+	                        selectedPeople2.push(person);
+	                        item.classList.add('selected');
+	                    } else {
+	                        // 선택된 사람 수가 3명 이상일 경우 경고
+	                        alert('최대 3명까지 선택할 수 있습니다.');
+	                    }
+	
+	                }else if(group === 'agreement'){
+	                    if (selectedPeople.includes(person)) {
+	                        // 이미 선택된 사람을 해제
+	                        selectedPeople = selectedPeople.filter(p => p !== person);
+	                        item.classList.remove('selected');
+	                    } else if (selectedPeople.length < 3) {
+	                        // 선택된 사람이 3명 이하인 경우에만 추가
+	                        selectedPeople.push(person);
+	                        item.classList.add('selected');
+	                    } else {
+	                        // 선택된 사람 수가 3명 이상일 경우 경고
+	                        alert('최대 3명까지 선택할 수 있습니다.');
+	                    }
+	                }else if(group === 'references'){
+	                    if (selectedPeople3.includes(person)) {
+	                        // 이미 선택된 사람을 해제
+	                        selectedPeople3 = selectedPeople3.filter(p => p !== person);
+	                        item.classList.remove('selected');
+	                    } else{
+	                        selectedPeople3.push(person);
+	                        item.classList.add('selected');
+	                    }
+	                }
+	            });
+	        });
+        
+	        // 적용 버튼 클릭 시 선택된 사람을 페이지에 반영
+	        selectButton.addEventListener('click', () => {
+	            const group = modal.dataset.group;
+	
+	            if (group === 'agreement') {
+	                selectedNames.forEach((element, index) => {
+	                    element.textContent = selectedPeople[index] || '';
+	                    button.value = '';
+	                });
+	            } else if (group === 'approver') {
+	                selectedNames2.forEach((element, index) => {
+	                    element.textContent = selectedPeople2[index] || '';
+	                    button2.value= '';
+	                });
+	            } else if ( group === 'references') {
+	                selectedNames3.value = selectedPeople3.join(', ');
+	            }
+	
+	            modal.style.display = 'none';
+	        });
+    	</script>
+    </div>
+</body>
+</html>

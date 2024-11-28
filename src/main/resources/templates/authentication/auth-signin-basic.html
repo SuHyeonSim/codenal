@@ -1,0 +1,198 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="en" data-layout="vertical" data-topbar="light" data-sidebar="dark"
+    data-sidebar-size="lg" data-sidebar-image="none" data-preloader="disable">
+
+<head>
+    <!-- page title -->
+    <div th:replace="partials/title-meta :: title-meta('Sign In')"></div>
+
+    <!-- Page CSS -->
+    <div th:replace="partials/head-css :: head-css"></div>
+    
+    <meta name="_csrf" th:content="${_csrf.token}" />
+<meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    
+    <!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+   
+ <style>
+    /* 로그인 페이지 배경 색상을 더 진한 남색으로 설정하고 반투명 적용 */
+    body {
+        background-color: rgba(81, 120, 221, 0.8); /* 진한 남색, 20% 투명 */
+    }
+</style>
+</head>
+
+<body>
+    <div class="auth-page-wrapper pt-5">
+        <!-- auth page bg -->
+       
+          
+
+            <div class="shape">
+                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink"
+                    viewBox="0 0 1440 120">
+                    <path d="M 0,36 C 144,53.6 432,123.2 720,124 C 1008,124.8 1296,56.8 1440,40L1440 140L0 140z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- auth page content -->
+        <div class="auth-page-content">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="text-center mt-sm-5 mb-4 text-white-50">
+                            <div>
+                                
+                            </div>
+                            <p class="mt-3 fs-15 fw-medium"></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- end row -->
+
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-6 col-xl-5">
+                        <div class="card mt-5">
+                            <div class="card-body p-4">
+                            <div class="mb-5"></div>
+                                <div class="text-center mt-2">
+                                   <span class="logo-sm">
+						<img src="/assets/images/main-logo.png" alt="" height="38">
+					</span>
+                                    <p class="text-muted"></p>
+                                </div>
+                                <div class="p-2 mt-4">
+                                    <!-- 오류 메시지 표시 -->
+                                  <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+
+
+									
+                                    <!-- 로그인 폼 -->
+                                    <form id="login-form"  action="/auth-signin-basic" method="post">
+                                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                                        <div class="mb-3">
+                                            <label for="emp_id" class="form-label">ID</label>
+                                            <input type="text" class="form-control" id="emp_id" name="emp_id"
+                                                placeholder="사번을 입력해주세요." required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label" for="emp_pw">Password</label>
+                                            <div class="position-relative auth-pass-inputgroup mb-3">
+                                                <input type="password" class="form-control pe-5" name="emp_pw"
+                                                    placeholder="비밀번호를 입력해주세요." id="emp_pw" required>
+                                                
+                                            </div>
+                                        </div>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="remember-me" value=""
+                                                id="auth-remember-check">
+                                            <label class="form-check-label" for="auth-remember-check">ID 저장</label>
+                                        </div>
+
+                                        <div class="form-check mt-3">
+                                            <input class="form-check-input" type="checkbox" name="remember-me" value="true"
+                                                id="auth-keep-signed-in-check">
+                                            <label class="form-check-label" for="auth-keep-signed-in-check">로그인 유지</label>
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <button class="btn btn-primary w-100" type="submit">Login</button>
+                                        </div>
+
+                                        <div class="mt-4 text-center">
+                                            
+                                            
+                                        </div>
+                                    </form>
+                                    <!-- 로그인 폼 종료 -->
+                                </div>
+                            </div>
+                            <!-- end card body -->
+                        </div>
+                        <!-- end card -->
+
+                    </div>
+                </div>
+                <!-- end row -->
+            </div>
+            <!-- end container -->
+        </div>
+        <!-- end auth page content -->
+
+        <!-- footer -->
+       
+        <!-- end Footer -->
+    </div>
+
+    <div th:replace="partials/vendor-scripts :: scripts"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+
+        <!-- 로그인 폼 제출 및 응답 처리 -->
+    <script>
+    
+    window.onload = function() {
+        var savedId = localStorage.getItem("savedId");
+        if (savedId) {
+            document.getElementById("emp_id").value = savedId;
+            document.getElementById("auth-remember-check").checked = true; // 체크박스도 체크된 상태로 표시
+        }
+    };
+    
+    
+    document.getElementById("login-form").addEventListener("submit", function(event) {
+        event.preventDefault(); // 폼 제출을 막기
+
+        var form = event.target;
+        var formData = new FormData(form);
+        
+        var rememberMeCheckbox = document.getElementById("auth-remember-check");
+        var empIdInput = document.getElementById("emp_id");
+        
+        var token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        var header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        
+        if (rememberMeCheckbox.checked) {	
+            localStorage.setItem("savedId", empIdInput.value); // ID 저장
+        } else {
+            localStorage.removeItem("savedId"); // 체크 해제 시 저장된 ID 삭제
+        }
+
+        fetch(form.action, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                [header]: token
+            }
+        }).then(function(response) {
+            if (response.ok) {
+                window.location.href = "/";
+            } else {
+                // 401 에러를 처리
+                if (response.status === 401) {
+                    return response.json().then(function(data) {
+                        var errorMessage = data.error || "아이디 또는 비밀번호가 잘못 입력되었습니다."; // 기본 에러 메시지
+                        
+                        // 에러 메시지를 페이지 내에 표시
+                        var errorDiv = document.getElementById("error-message");
+                        errorDiv.style.display = "block"; // 에러 메시지를 보여줌
+                        errorDiv.innerText = errorMessage; // 에러 메시지 텍스트 설정
+                    });
+                }
+            }
+        }).catch(function(error) {
+            console.error("Error during login:", error);
+        });
+    });
+</script>
+</body>
+
+</html> 

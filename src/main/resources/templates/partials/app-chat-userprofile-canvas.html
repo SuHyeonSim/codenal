@@ -1,0 +1,67 @@
+<html>
+
+<body>
+<!-- 1:1 채팅방 offcanvas -->
+	<div th:fragment="offcanvas" th:remove="tag">
+		<div class="offcanvas offcanvas-end border-0" tabindex="-1"
+			id="chatUserProfileCanvasExample">
+			<!--end offcanvas-header-->
+			<div class="offcanvas-body profile-offcanvas p-0">
+				<div class="team-cover">
+					<img src="/assets/images/small/img-9.jpg" alt="커버 이미지"
+						class="img-fluid" />
+				</div>
+				<div class="p-1 pb-4 pt-0">
+					<div class="team-settings">
+						<div class="row g-0">
+							<div class="col">
+								<div class="btn nav-btn">
+									<button type="button" class="btn-close btn-close-white"
+										data-bs-dismiss="offcanvas" aria-label="Close"></button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--end col-->
+				</div>
+				<div class="p-3 text-center">
+					<img src="/assets/images/users/avatar-2.jpg" alt="채팅 상대 프로필 이미지"
+						class="avatar-lg img-thumbnail rounded-circle mx-auto profile-img">
+					<div class="mt-5">
+						<h1 class="mb-3">채팅 상대 이름</h1>
+					</div>
+
+					<div class="d-flex gap-2 justify-content-center"></div>
+				</div>
+
+				<div class="border-top border-top-dashed p-3">
+					<h5 class="text-muted mb-5">채팅 상대 정보</h5>
+					<div class="mb-3">
+						<p class="text-muted text-uppercase fw-medium fs-20 mb-1">부서</p>
+						<h3>개발팀</h3>
+					</div>
+					<div class="mb-3">
+						<p class="text-muted text-uppercase fw-medium fs-20 mb-1">직급</p>
+						<h3>대리</h3>
+					</div>
+					<div>
+						<p class="text-muted text-uppercase fw-medium fs-20 mb-1">전화번호</p>
+						<h4 class="mb-5">010-0000-0000</h4>
+					</div>
+				</div>
+
+				<div class="border-top border-top-dashed p-3">
+					<div class="text-center mt-2">
+						<button type="button" class="btn btn-danger">
+							주소록 이동하기 <i class="ri-arrow-right-fill align-bottom ms-1"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+		<!--end offcanvas-body-->
+	</div>
+	<!--end offcanvas-->
+	</div>
+</body>
+
+</html>

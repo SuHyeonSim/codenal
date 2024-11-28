@@ -1,0 +1,185 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout}" data-sidebar="light">
+
+<th:block layout:fragment="pagetitle">
+	<!--page title-->
+	<div th:replace="partials/title-meta :: title-meta('게시판 페이지')"></div>
+</th:block>
+
+<head>
+<!-- Sweet Alert css-->
+<link href="/assets/libs/sweetalert2/sweetalert2.min.css"
+	rel="stylesheet" type="text/css" />
+	
+<!-- 폰트 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css"/>
+
+<style>
+	* {font-family: "Noto Sans KR", sans-serif !important;} 
+tr {
+	text-align: center;
+	font-size: 15px;
+}
+</style>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<div th:replace="partials/page-title :: page-title('게시판 조회','게시판')"></div>
+
+
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="card" id="tasksList">
+					<div class="card-header border-0">
+						<div class="d-flex align-items-center">
+							<h5 class="card-title mb-0 flex-grow-1">게시판 목록</h5>
+							<div class="flex-shrink-0">
+								<div class="d-flex flex-wrap gap-2">
+									<a href="/announce/create" class="btn btn-primary"><i
+										class="ri-add-line align-bottom me-1"></i> 게시글 작성 </a>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="card-body border border-dashed border-end row justify-content-end">
+							<input type="hidden" th:value="${username}"></input>
+							<input type="hidden" th:value="${#authentication.principal.employeeDto.deptNo}" id="user_dept_no"></input>
+							<input type="hidden" th:value="${#authentication.principal.employeeDto.jobNo}" id="user_job_no"></input>
+							<div class="search col-1 col-sm-3" th:if="${searchDto != null}">
+								<form th:action="@{/announce}" th:object="${searchDto}" method="get">
+
+										<select name="search_type" class="form-select-sm rounded-pill mb-3 text-muted" th:value="${searchDto.search_type}">
+											<option th:value="1" th:selected="${searchDto.search_type} == '1'">제목</option>
+											<option th:value="2" th:selected="${searchDto.search_type} == '2'">작성자</option>
+											<option th:value="3" th:selected="${searchDto.search_type} == '3'">제목+작성자</option>
+										</select> 
+										<div class="search-box">
+											<div class="input-group">
+											<input type="text" name="search_text" th:field="*{search_text}" 
+												class="form-control" aria-describedby="button-addon"
+												placeholder="검색어를 입력하세요."><i class="ri-search-line search-icon"></i>
+											<button type="submit" class="btn btn-soft-warning waves-effect waves-light w-45" id="button-addon">
+											검색</button>
+											</div>
+										</div>
+
+								<!--end col-->
+								</form>
+							</div>
+							<!--end row-->
+					</div>
+					<!--end card-body-->
+					<div class="card-body">
+						<div class="table-responsive table-card mb-4">
+							<table class="table align-middle table-nowrap mb-0 table table-bordered dt-responsive table-striped" 
+								id="tasksTable">
+								<thead class="table-primary text-muted">
+									<tr>
+										<th>번호</th>
+										<th>조회수</th>
+										<th>제목</th>
+										<th>작성자</th>
+										<th>작성 날짜</th>
+									</tr>
+								</thead>
+								<tbody>
+									<!-- announceList 꺼내기(게시글 존재x) -->
+									<th:block th:if="${#lists.isEmpty(announceList.content)}">
+										<tr>
+											<td colspan="5">해당하는 게시글이 없습니다.</td>
+										</tr>
+									</th:block>
+									<!-- announceList 꺼내기(게시글 존재o) -->
+									<th:block th:if="${!#lists.isEmpty(announceList.content)}">
+									    <tr th:each="announce, stat : ${announceList}">
+									        <td th:text="${(announceList.pageable.pageSize) * (announceList.pageable.pageNumber) + stat.count}"></td>
+									        <td th:text="${announce.view_count}"></td>
+									        <td>
+									            <a th:href="@{/announce/detail/{no}(no=${announce.announce_no})}"
+									               th:text="${announce.announce_title}"
+									               th:if="${announce.canAccess}" class="form-check-label ps-2" style="display: block; width: 100%;">
+									            </a>
+									            <!-- 접근 권한이 없으면, 권한 없음 표시 -->
+									            <span class="text-muted form-check-label ps-2 " th:if="${!announce.canAccess}">해당 게시글 접근 권한 없음</span>
+									        </td>
+									        <td th:text="${announce.employee.empName}">작성자이름</td>
+									        <td th:text="${#temporals.format(announce.reg_date, 'yy-MM-dd HH:mm:ss')}">작성날짜</td>
+									    </tr>
+									</th:block>
+								</tbody>
+							</table>
+							<!--end table-->
+
+						</div>
+						<!--페이징 로직-->
+						<div class="d-flex justify-content-end mt-2"
+							th:if="${!announceList.isEmpty()}">
+							<ul class="pagination"
+								th:with="
+								pageNumber = ${announceList.pageable.pageNumber},
+								pageSize = ${announceList.pageable.pageSize},
+								totalPages = ${announceList.totalPages},
+								startPage = ${T(java.lang.Math).floor(pageNumber / pageSize) * pageSize + 1},
+								tempEndPage = ${startPage + pageSize - 1},
+								endPage = (${tempEndPage < totalPages ? tempEndPage : totalPages})
+								">
+								<!-- 이전 -->
+								<th:block th:if="${!announceList.first}">
+									<li class="page-item"><a class="page-link"
+										th:href="${announceList.first} ? '#' : @{/announce(page=${pageNumber - 1},search_text=${searchDto.search_text},search_type=${searchDto.search_type})}">&lt;이전</a>
+									</li>
+								</th:block>
+								<!-- * 컬렉션을 반복하는 것이 아니라 단순히 숫자만 반복할때 #numbers사용-->
+								<th:block
+									th:each="page: ${#numbers.sequence(startPage, endPage)}">
+									<li class="page-item"><a class="page-link"
+										th:text="${page}"
+										th:href="@{/announce(page=${page} - 1,search_text=${searchDto.search_text},search_type=${searchDto.search_type})}"
+										th:classappend="${page == pageNumber + 1} ? 'active'">1</a></li>
+								</th:block>
+								<ul class="pagination listjs-pagination mb-0"></ul>
+								<!-- 이후 -->
+								<th:block th:if="${!announceList.last}">
+									<li class="page-item"><a class="page-link"
+										th:href="${announceList.last} ? '#' : @{/announce(page=${pageNumber + 1},search_text=${searchDto.search_text},search_type=${searchDto.search_type})}">&gt;이후</a>
+									</li>
+								</th:block>
+							</ul>
+						</div>
+						<!-- 페이징 로직 끝 -->
+					</div>
+					<!--end card-body-->
+				</div>
+				<!--end card-->
+			</div>
+			<!--end col-->
+		</div>
+		<!--end row-->
+
+	</div>
+
+	<th:block layout:fragment="pagejs">
+		<script src="/assets/libs/prismjs/prism.js"></script>
+		<!-- list.js min js -->
+		<script src="/assets/libs/list.js/list.min.js"></script>		
+		<!--list pagination js-->
+		<script src="/assets/libs/list.pagination.js/list.pagination.min.js"></script>
+		<!-- Sweet Alerts js -->
+		<script src="/assets/libs/sweetalert2/sweetalert2.min.js"></script>
+		<!-- announce init js -->
+		<script src="/assets/js/pages/announce.init.js"></script>
+	</th:block>
+
+</body>
+
+</html>

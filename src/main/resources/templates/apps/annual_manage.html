@@ -1,0 +1,386 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout}" data-sidebar="light">
+
+<!-- 페이지 제목 -->
+<th:block layout:fragment="pagetitle">
+	<div th:replace="partials/title-meta :: title-meta('연차 관리')"></div>
+</th:block>
+
+<head>
+<meta name="_csrf" th:content="${_csrf.token}">
+<meta name="_csrf_header" th:content="${_csrf.headerName}">
+<!-- Sweet Alert css -->
+<link href="/assets/libs/sweetalert2/sweetalert2.min.css"
+	rel="stylesheet" type="text/css" />
+
+<!-- 폰트 -->
+<link
+	href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
+	rel="stylesheet">
+<!-- Sweet Alert css -->
+<link href="/assets/libs/sweetalert2/sweetalert2.min.css"
+	rel="stylesheet" type="text/css" />
+
+<style>
+* {
+	font-family: "Noto Sans KR", sans-serif !important;
+}
+
+.card-body.pt-0 {
+	height: 592.5px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	position: relative;
+	padding-bottom: 60px;
+}
+
+.card-body.pt-0 {
+	height: 592.5px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	position: relative;
+	padding-bottom: 60px;
+}
+
+.pagination {
+	position: absolute;
+	bottom: 10px;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+/* 날짜 검색 필드와 버튼 크기 조정 및 정렬 */
+.search-form {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	gap: 10px;
+}
+
+.search-form input[type="date"] {
+	max-width: 150px;
+	padding: 5px;
+	font-size: 14px;
+}
+
+.search-form button {
+	max-width: 100px;
+	padding: 5px 10px;
+	font-size: 14px;
+}
+
+/* 날짜 사이에 ~ 표시 */
+.date-separator {
+	font-size: 16px;
+	padding: 0 5px;
+}
+
+/* 월 선택 네비게이션 스타일 */
+.month-navigation {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 20px;
+}
+
+.month-navigation button {
+	background-color: transparent;
+	color: #5178DD;
+	border: none;
+	padding: 5px 10px;
+	cursor: pointer;
+	margin: 0 10px;
+	border-radius: 4px;
+	font-size: 20px;
+	transition: color 0.3s;
+}
+
+.month-navigation button:hover {
+	color: #2952a3;
+}
+
+.month-navigation span {
+	font-size: 18px;
+	font-weight: bold;
+}
+
+/* 상단 카드 박스 스타일 수정 */
+.leave-summary {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 20px;
+	padding: 20px 20px;
+	background-color: #ffffff;
+	border-radius: 0;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	max-width: 1000px;
+	margin: 0 auto 20px auto;
+}
+
+.leave-summary .item {
+	display: flex;
+	align-items: center;
+	text-align: center;
+	margin: 0 15px;
+}
+
+/* 이름과 직급 부분 스타일 */
+.leave-summary .name-item {
+	display: flex;
+	align-items: center;
+	margin-right: 30px;
+}
+
+.leave-summary .name-item h3 {
+	margin: 0;
+	font-size: 18px;
+}
+
+.leave-summary .name-item .separator {
+	height: 25px;
+	border-left: 1px solid #ccc;
+	margin: 0 10px;
+}
+
+.leave-summary .name-item p {
+	margin: 0;
+	font-size: 16px;
+}
+
+.leave-summary .item h3 {
+	margin: 0;
+	font-size: 16px;
+	padding-right: 5px;
+}
+
+.leave-summary .item p {
+	margin: 0;
+	font-size: 16px;
+}
+
+.leave-summary .item, .leave-summary .name-item {
+	padding: 10px 0;
+}
+</style>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<div th:replace="partials/page-title :: page-title('연차 관리', '-')"></div>
+
+		<div class="row">
+			<div class="col-lg-12">
+				<div class="card">
+					<div class="card-header border-0">
+						<h5 class="card-title mb-0"
+							style="font-size: 18px; font-weight: bold;">연차 관리</h5>
+					</div>
+
+					<!-- 상단 카드 박스 -->
+					<div class="leave-summary">
+						<div class="name-item">
+							<h3 th:text="${employee.empName}"></h3>
+							<div class="separator"></div>
+							<p th:text="${employee.jobs.jobName}"></p>
+						</div>
+						<div class="item">
+							<h3>총 연차:</h3>
+							<p th:text="${annualLeaveManage.annualTotalDay} + ' 일'"></p>
+						</div>
+						<div class="item">
+							<h3>사용 연차:</h3>
+							<p th:text="${annualLeaveManage.annualUsedDay} + ' 일'"></p>
+						</div>
+						<div class="item">
+							<h3>잔여 연차:</h3>
+							<p th:text="${annualLeaveManage.annualRemainDay} + ' 일'"></p>
+						</div>
+					</div>
+
+					<!-- 월 선택 네비게이션 -->
+					<div class="month-navigation">
+						<button type="button" id="prevMonthBtn">&lt;</button>
+						<span id="currentMonth" th:text="${currentMonth}">2024.09</span>
+						<button type="button" id="nextMonthBtn">&gt;</button>
+					</div>
+
+					<!-- 날짜 검색 폼 -->
+					<form th:action="@{/apps-annual-leave}" method="get"
+						class="search-form">
+						<div
+							class="card-body border border-dashed border-end-0 border-start-0">
+							<div class="d-flex align-items-center">
+								<div>
+									<input type="date" class="form-control" name="startDate"
+										placeholder="시작 날짜 선택" th:value="${startDate}" />
+								</div>
+								<div class="date-separator">~</div>
+								<div>
+									<input type="date" class="form-control" name="endDate"
+										placeholder="종료 날짜 선택" th:value="${endDate}" />
+								</div>
+								<div>
+									<button type="submit" class="btn btn-primary">검색</button>
+								</div>
+							</div>
+						</div>
+					</form>
+
+					<!-- 연차 사용 내역 목록 -->
+					<div class="mb-4"></div>
+					<div class="card-body pt-0">
+						<div class="table-responsive table-card mb-0">
+							<table
+								class="table align-middle table-nowrap table-striped table-hover mb-3">
+								<thead class="table-light">
+									<tr>
+										<th style="text-align: center; font-size: 15px;">이름</th>
+
+										<th style="text-align: center; font-size: 15px;">연차 시작일</th>
+										<th style="text-align: center; font-size: 15px;">연차 종료일</th>
+										<th style="text-align: center; font-size: 15px;">사용 연차 일수</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:if="${#lists.isEmpty(annualLeaveUsages.content)}">
+										<td colspan="4" style="text-align: center;">연차 사용 내역이
+											없습니다.</td>
+									</tr>
+
+									<tr th:each="usage : ${annualLeaveUsages.content}">
+										<td th:text="${usage.empName}" style="text-align: center;"></td>
+
+										<td
+											th:text="${#temporals.format(usage.annual_usage_start_date, 'yyyy-MM-dd')}"
+											style="text-align: center;"></td>
+										<td
+											th:text="${#temporals.format(usage.annual_usage_end_date, 'yyyy-MM-dd')}"
+											style="text-align: center;"></td>
+										<td th:text="${usage.total_day} + ' 일'"
+											style="text-align: center;"></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+
+						<!-- 페이지네이션 처리 -->
+						<ul class="pagination justify-content-center"
+							th:if="${annualLeaveUsages.totalPages > 1}">
+							<!-- 이전 페이지 버튼 -->
+							<li class="page-item"
+								th:classappend="${annualLeaveUsages.first} ? 'disabled'"><a
+								class="page-link" th:if="${!annualLeaveUsages.first}"
+								th:href="@{/apps-annual-leave(
+               startDate=${startDate},
+               endDate=${endDate},
+               page=${annualLeaveUsages.number - 1},
+               size=${annualLeaveUsages.size})}"
+								aria-label="Previous"> <span aria-hidden="true">&laquo;</span>
+							</a> <span class="page-link" th:if="${annualLeaveUsages.first}">
+									<span aria-hidden="true">&laquo;</span>
+							</span></li>
+
+							<!-- 페이지 번호 버튼 -->
+							<li class="page-item"
+								th:each="i : ${#numbers.sequence(1, annualLeaveUsages.totalPages)}"
+								th:classappend="${i == annualLeaveUsages.number + 1} ? 'active'">
+								<a class="page-link"
+								th:href="@{/apps-annual-leave(
+               startDate=${startDate},
+               endDate=${endDate},
+               page=${i - 1},
+               size=${annualLeaveUsages.size})}"
+								th:text="${i}">1</a>
+							</li>
+
+							<!-- 다음 페이지 버튼 -->
+							<li class="page-item"
+								th:classappend="${annualLeaveUsages.last} ? 'disabled'"><a
+								class="page-link"
+								th:href="@{/apps-annual-leave(
+               startDate=${startDate},
+               endDate=${endDate},
+               page=${annualLeaveUsages.number + 1},
+               size=${annualLeaveUsages.size})}"
+								aria-label="Next"> <span aria-hidden="true">&raquo;</span>
+							</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- JavaScript 코드 추가 -->
+		<script>
+		document.addEventListener('DOMContentLoaded', function () {
+		    const prevMonthBtn = document.getElementById('prevMonthBtn');
+		    const nextMonthBtn = document.getElementById('nextMonthBtn');
+		    const currentMonthSpan = document.getElementById('currentMonth');
+
+		    // 날짜 검색 폼의 startDate와 endDate 값을 가져오기
+		    const startDateInput = document.querySelector('input[name="startDate"]');
+		    const endDateInput = document.querySelector('input[name="endDate"]');
+
+		    // 현재 선택된 연도와 월을 파싱
+		    let [currentYear, currentMonth] = currentMonthSpan.textContent.split('.').map(Number);
+
+		    // 이전 달 버튼이 존재할 경우 이벤트 리스너 추가
+		    if (prevMonthBtn) {
+		        prevMonthBtn.addEventListener('click', function () {
+		            if (currentMonth === 1) {
+		                currentYear -= 1;
+		                currentMonth = 12;
+		            } else {
+		                currentMonth -= 1;
+		            }
+		            updateMonth();
+		        });
+		    }
+
+		    // 다음 달 버튼이 존재할 경우 이벤트 리스너 추가
+		    if (nextMonthBtn) {
+		        nextMonthBtn.addEventListener('click', function () {
+		            if (currentMonth === 12) {
+		                currentYear += 1;
+		                currentMonth = 1;
+		            } else {
+		                currentMonth += 1;
+		            }
+		            updateMonth();
+		        });
+		    }
+
+		    // 월을 업데이트하고 페이지를 새로고침하는 함수
+		    function updateMonth() {
+		        // 현재 월을 "yyyy.MM" 형식으로 업데이트
+		        currentMonthSpan.textContent = `${currentYear}.${String(currentMonth).padStart(2, '0')}`;
+
+		        // 기존의 startDate와 endDate 값을 가져오기
+		        const startDate = startDateInput.value;
+		        const endDate = endDateInput.value;
+
+		        // 페이지를 새로고침하면서 year과 month 파라미터를 전달
+		        const url = new URL(window.location.href);
+		        url.searchParams.set('year', currentYear);
+		        url.searchParams.set('month', currentMonth);
+
+		        // startDate와 endDate가 존재하면 추가
+		        if (startDate) {
+		            url.searchParams.set('startDate', startDate);
+		        }
+		        if (endDate) {
+		            url.searchParams.set('endDate', endDate);
+		        }
+
+		        window.location.href = url.toString();
+		    }
+		});
+            </script>
+	</div>
+</body>
+</html>

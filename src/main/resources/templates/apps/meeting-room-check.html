@@ -1,0 +1,468 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout}" data-sidebar="light">
+
+<th:block layout:fragment="pagetitle">
+	<!--page title-->
+	<div th:replace="partials/title-meta :: title-meta('회의실 추가')"></div>
+</th:block>
+
+<head>
+	<!-- Plugins css -->
+	<link href="/assets/libs/dropzone/dropzone.css" rel="stylesheet" type="text/css" />
+	<!-- 폰트 -->
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+	<style type="text/css">
+		* {font-family: "Noto Sans KR", sans-serif !important;} 
+	</style>
+</head>
+
+<body>
+	<div layout:fragment="content">
+		<div th:replace="partials/page-title :: page-title('회의실 추가','회의실 예약')"></div>
+		
+		<input type="hidden" id="csrf_token" th:value="${_csrf.token}"/>
+		<input type="hidden" id="_csrf_header" value="X-CSRF-Token"/>
+
+		<form id="createproduct-form" autocomplete="off" class="needs-validation" novalidate>
+			<div class="row">
+				<div class="col-lg-12">
+					<!-- <div class="card">
+						<div class="card-body">
+							<div class="mb-3">
+								<label class="form-label" for="product-title-input">Product Title</label>
+								<input type="hidden" class="form-control" id="formAction" name="formAction" value="add">
+								<input type="text" class="form-control d-none" id="product-id-input">
+								<input type="text" class="form-control" id="product-title-input" value=""
+									placeholder="Enter product title" required>
+								<div class="invalid-feedback">Please Enter a product title.</div>
+							</div>
+							<div>
+								<label>Product Description</label>
+
+								<div id="ckeditor-classic">
+									<p>Tommy Hilfiger men striped pink sweatshirt. Crafted with cotton. Material
+										composition is 100% organic cotton. This is one of the world’s leading designer
+										lifestyle brands and is internationally recognized for celebrating the essence
+										of classic American cool style, featuring preppy with a twist designs.</p>
+									<ul>
+										<li>Full Sleeve</li>
+										<li>Cotton</li>
+										<li>All Sizes available</li>
+										<li>4 Different Color</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div> -->
+					<!-- end card -->
+
+					<div class="card">
+						<div class="card-header">
+							<h5 class="card-title mb-0">회의실 이미지</h5>
+						</div>
+						<div class="card-body">
+							<div class="mb-4">
+								<h5 class="fs-14 mb-1">회의실 이미지를 추가하세요.</h5>
+								<!-- <p class="text-muted">회의실 이미지를 추가하세요.</p> -->
+								<div class="text-center">
+									<div class="position-relative d-inline-block">
+										<div class="position-absolute top-100 start-100 translate-middle">
+											<label for="product-image-input" class="mb-0" data-bs-toggle="tooltip"
+												data-bs-placement="right" title="이미지 업로드">
+												<div class="avatar-xs">
+													<div
+														class="avatar-title bg-light border rounded-circle text-muted cursor-pointer">
+														<i class="ri-image-fill"></i>
+													</div>
+												</div>
+											</label>
+											<input class="form-control d-none" value="" id="product-image-input" name="file"
+												type="file" accept="image/png, image/gif, image/jpeg">
+										</div>
+										<div class="avatar-lg">
+											<div class="avatar-title bg-light rounded">
+												<img src="" id="product-img" class="avatar-md h-auto" />
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!-- <div>
+								<h5 class="fs-14 mb-1">Product Gallery</h5>
+								<p class="text-muted">Add Product Gallery Images.</p>
+
+								<div class="dropzone">
+									<div class="fallback">
+										<input name="file" type="file" multiple="multiple">
+									</div>
+									<div class="dz-message needsclick">
+										<div class="mb-3">
+											<i class="display-4 text-muted ri-upload-cloud-2-fill"></i>
+										</div>
+
+										<h5>Drop files here or click to upload.</h5>
+									</div>
+								</div>
+
+								<ul class="list-unstyled mb-0" id="dropzone-preview">
+									<li class="mt-2" id="dropzone-preview-list">
+										This is used as the file preview template
+										<div class="border rounded">
+											<div class="d-flex p-2">
+												<div class="flex-shrink-0 me-3">
+													<div class="avatar-sm bg-light rounded">
+														<img data-dz-thumbnail class="img-fluid rounded d-block" src="#"
+															alt="Product-Image" />
+													</div>
+												</div>
+												<div class="flex-grow-1">
+													<div class="pt-1">
+														<h5 class="fs-14 mb-1" data-dz-name>&nbsp;</h5>
+														<p class="fs-13 text-muted mb-0" data-dz-size></p>
+														<strong class="error text-danger" data-dz-errormessage></strong>
+													</div>
+												</div>
+												<div class="flex-shrink-0 ms-3">
+													<button data-dz-remove class="btn btn-sm btn-danger">Delete</button>
+												</div>
+											</div>
+										</div>
+									</li>
+								</ul>
+								end dropzon-preview
+							</div> -->
+						</div>
+					</div>
+					<!-- end card -->
+
+					<div class="card">
+						<div class="card-header">
+							<h5 class="card-title mb-0">회의실 정보 등록</h5>
+							<!-- <ul class="nav nav-tabs-custom card-header-tabs border-bottom-0" role="tablist">
+								<li class="nav-item">
+									<a class="nav-link active" data-bs-toggle="tab" href="#addproduct-general-info"
+										role="tab">
+										General Info
+									</a>
+								</li>
+								<li class="nav-item">
+								</li>
+							</ul> -->
+						</div>
+						<!-- end card header -->
+						<div class="card-body">
+							<div>
+								<!-- <div class="tab-pane active" id="addproduct-general-info" role="tabpanel">
+									<div class="row">
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label class="form-label" for="manufacturer-name-input">Manufacturer
+													Name</label>
+												<input type="text" class="form-control" id="manufacturer-name-input"
+													placeholder="Enter manufacturer name">
+											</div>
+										</div>
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label class="form-label" for="manufacturer-brand-input">Manufacturer
+													Brand</label>
+												<input type="text" class="form-control" id="manufacturer-brand-input"
+													placeholder="Enter manufacturer brand">
+											</div>
+										</div>
+									</div>
+									end row
+
+									<div class="row">
+										<div class="col-lg-3 col-sm-6">
+											<div class="mb-3">
+												<label class="form-label" for="stocks-input">Stocks</label>
+												<input type="text" class="form-control" id="stocks-input"
+													placeholder="Stocks" required>
+												<div class="invalid-feedback">Please Enter a product stocks.</div>
+											</div>
+										</div>
+										<div class="col-lg-3 col-sm-6">
+											<div class="mb-3">
+												<label class="form-label" for="product-price-input">Price</label>
+												<div class="input-group has-validation mb-3">
+													<span class="input-group-text" id="product-price-addon">$</span>
+													<input type="text" class="form-control" id="product-price-input"
+														placeholder="Enter price" aria-label="Price"
+														aria-describedby="product-price-addon" required>
+													<div class="invalid-feedback">Please Enter a product price.</div>
+												</div>
+
+											</div>
+										</div>
+										<div class="col-lg-3 col-sm-6">
+											<div class="mb-3">
+												<label class="form-label" for="product-discount-input">Discount</label>
+												<div class="input-group mb-3">
+													<span class="input-group-text" id="product-discount-addon">%</span>
+													<input type="text" class="form-control" id="product-discount-input"
+														placeholder="Enter discount" aria-label="discount"
+														aria-describedby="product-discount-addon">
+												</div>
+											</div>
+										</div>
+										<div class="col-lg-3 col-sm-6">
+											<div class="mb-3">
+												<label class="form-label" for="orders-input">Orders</label>
+												<input type="text" class="form-control" id="orders-input"
+													placeholder="Orders" required>
+												<div class="invalid-feedback">Please Enter a product orders.</div>
+											</div>
+										</div>
+										end col
+									</div>
+									end row
+								</div> -->
+								<!-- end tab-pane -->
+
+								<div class="tab-pane" id="addproduct-metadata" role="tabpanel">
+									<div class="row">
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label class="form-label" for="meta-title-input">회의실 이름</label>
+												<input type="text" class="form-control" placeholder="회의실 이름을 입력하세요."
+													id="meeting_room_name" name="meeting_room_name">
+											</div>
+										</div>
+										<!-- end col -->
+
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label class="form-label" for="meta-keywords-input">회의실 장소</label>
+												<input type="text" class="form-control" name="meeting_room_place"
+													placeholder="회의실 장소를 입력하세요." id="place">
+											</div>
+										</div>
+										<!-- end col -->
+									</div>
+									<!-- end row -->
+
+									
+									
+									<!-- <div class="row">
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label for="datepicker-publish-input" class="form-label">회의실 예약 시작 시간</label>
+												<input type='text' id='start-time' class='form-control'
+												placeholder='예약 시작 시간을 입력하세요.' data-provider='timepickr' data-time-basic='true'>
+											</div>
+										</div>
+										<div class="col-lg-6">
+											<div class="mb-3">
+												<label for="datepicker-publish-input" class="form-label">회의실 예약 종료 시간</label>
+												<input type="text" id="end-time" class="form-control"
+												placeholder="예약 종료 시간을 입력하세요." data-provider="timepickr" data-time-basic="true">
+											</div>
+										</div>
+									</div> -->
+									
+									
+									
+									<div class="row mb-3">
+										<label class="form-label" for="meta-description-input">회의실 예약 시간 등록</label>
+										<div class="hstack gap-3 align-items-start">
+											<div class="flex-grow-1">
+												<!-- <input class="form-control" data-choices
+													data-choices-multiple-remove="true" name="reserve_time" id="reserve_time"
+													placeholder="Enter tags" type="time" value="09:00~09:50" /> -->
+												<select class="form-control" id="reserve_time"
+													name="reserve_time" data-choices
+													data-choices-multiple-groups="true" multiple
+													data-choices-multiple-remove="true">
+													<option value="">예약 시간을 설정해주세요. &nbsp;&nbsp;&nbsp;</option>
+													<optgroup label="오전">
+														<option value="00:00~00:50">00:00 ~ 00:50</option>
+														<option value="01:00~01:50">01:00 ~ 01:50</option>
+														<option value="02:00~02:50">02:00 ~ 02:50</option>
+														<option value="03:00~03:50">03:00 ~ 03:50</option>
+														<option value="04:00~04:50">04:00 ~ 04:50</option>
+														<option value="05:00~05:50">05:00 ~ 05:50</option>
+														<option value="06:00~06:50">06:00 ~ 06:50</option>
+														<option value="07:00~07:50">07:00 ~ 07:50</option>
+														<option value="08:00~08:50">08:00 ~ 08:50</option>
+														<option value="09:00~09:50">09:00 ~ 09:50</option>
+														<option value="10:00~10:50">10:00 ~ 10:50</option>
+														<option value="11:00~11:50">11:00 ~ 11:50</option>
+													</optgroup>
+													<optgroup label="오후">
+														<option value="12:00~12:50">12:00 ~ 12:50</option>
+														<option value="13:00~13:50">13:00 ~ 13:50</option>
+														<option value="14:00~14:50">14:00 ~ 14:50</option>
+														<option value="15:00~15:50">15:00 ~ 15:50</option>
+														<option value="16:00~16:50">16:00 ~ 16:50</option>
+														<option value="17:00~17:50">17:00 ~ 17:50</option>
+														<option value="18:00~18:50">18:00 ~ 18:50</option>
+														<option value="19:00~19:50">19:00 ~ 19:50</option>
+														<option value="20:00~20:50">20:00 ~ 20:50</option>
+														<option value="21:00~21:50">21:00 ~ 21:50</option>
+														<option value="22:00~22:50">22:00 ~ 22:50</option>
+														<option value="23:00~23:50">23:00 ~ 23:50</option>
+													</optgroup>
+												</select>
+											</div>
+											<!-- <div class="flex-grow-1">
+												<div class="choices" data-type="text" aria-haspopup="true" aria-expanded="false">
+													<div class="choices__inner">
+														<input class="form-control choices__input" data-choices="" data-choices-multiple-remove="true" name="reserve-time"  placeholder="Enter tags" type="text" value="09:00~09:50" hidden="" tabindex="-1" data-choice="active">
+														<div class="choices__list choices__list--multiple">
+															<div class="choices__item choices__item--selectable" data-item="" data-id="1" data-value="09:00~09:50" data-custom-properties="[object Object]" aria-selected="true" data-deletable="">09:00~09:50<button type="button" class="choices__button" aria-label="Remove item: '09:00~09:50'" data-button="">Remove item</button></div>
+															<input type="text" id="reserve-time" class="choices__input choices__input--cloned" autocomplete="off" autocapitalize="off" spellcheck="false" role="textbox" aria-autocomplete="list" aria-label="null">
+														</div>
+														<div class="choices__list choices__list--dropdown is-active" aria-expanded="true">
+															<div class="choices__item choices__item--choice">Press Enter to add <b>"d"</b></div>
+														</div>
+													</div>
+												</div>
+											</div> -->
+										</div>
+										<!-- <div class="text-end">
+											<button type="submit" class="btn btn-success w-sm">시간 추가</button>
+										</div> -->
+									</div>
+									
+									<div class="row mb-3">
+											<div>
+												<label class="form-label" for="meta-keywords-input">회의실 어매니티</label>
+												<input type="text" class="form-control" name="meeting_room_amenity"
+													placeholder="회의실 어매니티를 입력하세요." id="amenity">
+											</div>
+									</div>
+									
+								</div>
+								<!-- end tab pane -->
+							</div>
+							<!-- end tab content -->
+						</div>
+						<!-- end card body -->
+					</div>
+					<!-- end card -->
+					<div class="text-end mb-3">
+						<button type="submit" class="btn btn-success w-sm">회의실 추가</button>
+					</div>
+				</div>
+				<!-- end col -->
+
+				<div class="col-lg-4">
+					<!-- <div class="card">
+						<div class="card-header">
+							<h5 class="card-title mb-0">Publish</h5>
+						</div>
+						<div class="card-body">
+							<div class="mb-3">
+								<label for="choices-publish-status-input" class="form-label">Status</label>
+
+								<select class="form-select" id="choices-publish-status-input" data-choices
+									data-choices-search-false>
+									<option value="Published" selected>Published</option>
+									<option value="Scheduled">Scheduled</option>
+									<option value="Draft">Draft</option>
+								</select>
+							</div>
+
+							<div>
+								<label for="choices-publish-visibility-input" class="form-label">Visibility</label>
+								<select class="form-select" id="choices-publish-visibility-input" data-choices
+									data-choices-search-false>
+									<option value="Public" selected>Public</option>
+									<option value="Hidden">Hidden</option>
+								</select>
+							</div>
+						</div>
+						end card body
+					</div> -->
+					<!-- end card -->
+
+					<!-- <div class="card">
+						<div class="card-header">
+							<h5 class="card-title mb-0">Publish Schedule</h5>
+						</div>
+						end card body
+						<div class="card-body">
+							<div>
+								<label for="datepicker-publish-input" class="form-label">Publish Date & Time</label>
+								<input type="text" id="datepicker-publish-input" class="form-control"
+									placeholder="Enter publish date" data-provider="timepickr" data-time-basic="true" 
+									>
+								
+							</div>
+						</div>
+					</div> -->
+					<!-- end card -->
+
+					<!-- <div class="card">
+						<div class="card-header">
+							<h5 class="card-title mb-0">Product Categories</h5>
+						</div>
+						<div class="card-body">
+							<p class="text-muted mb-2"> <a href="#" class="float-end text-decoration-underline">Add
+									New</a>Select product category</p>
+							<select class="form-select" id="choices-category-input" name="choices-category-input"
+								data-choices data-choices-search-false>
+								<option value="Appliances">Appliances</option>
+								<option value="Automotive Accessories">Automotive Accessories</option>
+								<option value="Electronics">Electronics</option>
+								<option value="Fashion">Fashion</option>
+								<option value="Furniture">Furniture</option>
+								<option value="Grocery">Grocery</option>
+								<option value="Kids">Kids</option>
+								<option value="Watches">Watches</option>
+							</select>
+						</div>
+						end card body
+					</div>
+					end card
+					<div class="card">
+						<div class="card-header">
+							<h5 class="card-title mb-0">Product Tags</h5>
+						</div>
+						<div class="card-body">
+							<div class="hstack gap-3 align-items-start">
+								<div class="flex-grow-1">
+									<input class="form-control" data-choices data-choices-multiple-remove="true"
+										placeholder="Enter tags" type="text" value="Cotton" />
+								</div>
+							</div>
+						</div>
+						end card body
+					</div>
+					end card
+
+					<div class="card">
+						<div class="card-header">
+							<h5 class="card-title mb-0">Product Short Description</h5>
+						</div>
+						<div class="card-body">
+							<p class="text-muted mb-2">Add short description for product</p>
+							<textarea class="form-control" placeholder="Must enter minimum of a 100 characters"
+								rows="3"></textarea>
+						</div>
+						end card body
+					</div> -->
+					<!-- end card -->
+
+				</div>
+				<!-- end col -->
+			</div>
+			<!-- end row -->
+
+		</form>
+	</div>
+
+	<th:block layout:fragment="pagejs">
+		 <!-- ckeditor -->
+    <script src="/assets/libs/@ckeditor/ckeditor5-build-classic/build/ckeditor.js"></script>
+
+    <!-- dropzone js -->
+    <script src="/assets/libs/dropzone/dropzone-min.js"></script>
+
+    <script src="/assets/js/pages/meeting-room-check.init.js"></script>
+	</th:block>
+</body>
+
+</html>
